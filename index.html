@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Garden Bot: The Sassy AI</title>
+<style>
+    /* --- CORE SETUP --- */
+    :root {
+        --sky-top: #A0C4FF;
+        --sky-bot: #CAE9FF;
+        --grass: #95D5B2;
+        --grass-dark: #52B788;
+        --robot-color: #FFC8DD;
+        --robot-accent: #FFAFCC;
+    }
+
+    body, html {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    /* --- SCENERY LAYERS --- */
+    .scene {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(to bottom, var(--sky-top), var(--sky-bot));
+        z-index: 1;
+    }
+
+    /* Mountains */
+    .mountain {
+        position: absolute;
+        bottom: 30%;
+        width: 0;
+        height: 0;
+        border-left: 150px solid transparent;
+        border-right: 150px solid transparent;
+        border-bottom: 250px solid #8D99AE;
+        z-index: 2;
+    }
+    .m-1 { left: 10%; transform: scale(1.2); border-bottom-color: #788599; }
+    .m-2 { left: 40%; transform: scale(0.8); border-bottom-color: #97A3B5; }
+    .m-3 { left: 70%; transform: scale(1.5); border-bottom-color: #6C7A8F; }
+
+    /* Village (Simple Houses) */
+    .village {
+        position: absolute;
+        bottom: 32%;
+        width: 100%;
+        z-index: 3;
+        display: flex;
+        justify-content: space-around;
+        opacity: 0.8;
+    }
+    .house {
+        width: 40px;
+        height: 30px;
+        background: #FFF;
+        position: relative;
+    }
+    .house::before { /* Roof */
+        content: '';
+        position: absolute;
+        top: -20px;
+        left: 0;
+        border-left: 20px solid transparent;
+        border-right: 20px solid transparent;
+        border-bottom: 20px solid #D90429;
+    }
+
+    /* Garden Ground */
+    .ground {
+        position: absolute;
+        bottom: 0;
+        width: 100%;
+        height: 35%;
+        background: linear-gradient(to bottom, var(--grass), var(--grass-dark));
+        z-index: 4;
+        border-top: 5px solid #74C69D;
+    }
+
+    /* Flowers */
+    .flower {
+        position: absolute;
+        bottom: 20px;
+        font-size: 24px;
+        animation: sway 3s infinite ease-in-out;
+    }
+    @keyframes sway { 0%, 100% { transform: rotate(-5deg); } 50% { transform: rotate(5deg); } }
+
+    /* Butterflies */
+    .butterfly {
+        position: absolute;
+        width: 10px;
+        height: 10px;
+        background: gold;
+        border-radius: 50%;
+        z-index: 5;
+        animation: fly 10s infinite linear;
+        box-shadow: 5px 0 orange, -5px 0 orange;
+    }
+    @keyframes fly {
+        0% { left: -10%; top: 60%; transform: translateY(0) rotate(0deg); }
+        25% { left: 25%; top: 50%; transform: translateY(-50px) rotate(10deg); }
+        50% { left: 50%; top: 60%; transform: translateY(0) rotate(-10deg); }
+        75% { left: 75%; top: 40%; transform: translateY(-30px) rotate(5deg); }
+        100% { left: 110%; top: 60%; transform: translateY(0) rotate(0deg); }
+    }
+
+    /* --- THE ROBOT --- */
+    .robot-container {
+        position: absolute;
+        bottom: 10%;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 10;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        animation: hover 3s infinite ease-in-out;
+        cursor: pointer;
+    }
+    @keyframes hover { 0%, 100% { transform: translateX(-50%) translateY(0); } 50% { transform: translateX(-50%) translateY(-15px); } }
+
+    .head {
+        width: 80px;
+        height: 70px;
+        background: var(--robot-color);
+        border-radius: 25px;
+        position: relative;
+        border: 4px solid #FFF;
+        box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+    }
+    .eyes {
+        display: flex;
+        justify-content: space-between;
+        padding: 20px 18px 0;
+    }
+    .eye {
+        width: 12px;
+        height: 20px;
+        background: #333;
+        border-radius: 50%;
+        animation: blink 4s infinite;
+    }
+    .mouth {
+        width: 20px;
+        height: 10px;
+        background: #333;
+        border-radius: 0 0 20px 20px;
+        margin: 5px auto;
+    }
+    .bow {
+        position: absolute;
+        top: -15px;
+        right: -5px;
+        font-size: 30px;
+        color: var(--robot-accent);
+    }
+    .body {
+        width: 50px;
+        height: 60px;
+        background: var(--robot-color);
+        border-radius: 15px;
+        margin-top: -5px;
+        border: 4px solid #FFF;
+    }
+    .arm {
+        width: 15px;
+        height: 40px;
+        background: var(--robot-accent);
+        position: absolute;
+        top: 80px;
+        border-radius: 10px;
+    }
+    .arm.left { left: -10px; transform: rotate(20deg); }
+    .arm.right { right: -10px; transform: rotate(-20deg); }
+
+    @keyframes blink { 0%, 48%, 52%, 100% { height: 20px; } 50% { height: 2px; } }
+
+    /* --- CHAT INTERFACE --- */
+    .chat-wrapper {
+        position: absolute;
+        bottom: 20px;
+        right: 20px;
+        width: 350px;
+        height: 500px;
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        z-index: 100;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        border: 1px solid rgba(255,255,255,0.5);
+    }
+
+    .chat-header {
+        background: var(--robot-accent);
+        color: white;
+        padding: 15px;
+        font-weight: bold;
+        text-align: center;
+        position: relative;
+    }
+    
+    .chat-body {
+        flex: 1;
+        padding: 15px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .message {
+        max-width: 80%;
+        padding: 10px 15px;
+        border-radius: 15px;
+        font-size: 14px;
+        line-height: 1.4;
+        animation: popIn 0.3s ease;
+    }
+    @keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+    .msg-bot {
+        background: white;
+        align-self: flex-start;
+        border-bottom-left-radius: 2px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        color: #333;
+    }
+    .msg-user {
+        background: var(--robot-accent);
+        color: white;
+        align-self: flex-end;
+        border-bottom-right-radius: 2px;
+    }
+
+    .chat-input-area {
+        padding: 10px;
+        background: white;
+        display: flex;
+        gap: 5px;
+        border-top: 1px solid #eee;
+    }
+    
+    input[type="text"] {
+        flex: 1;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 20px;
+        outline: none;
+    }
+    
+    button {
+        background: var(--robot-accent);
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 20px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: transform 0.1s;
+    }
+    button:active { transform: scale(0.95); }
+
+    /* API Modal */
+    #api-modal {
+        position: fixed;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0,0,0,0.6);
+        z-index: 999;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    .modal-content {
+        background: white;
+        padding: 30px;
+        border-radius: 15px;
+        width: 300px;
+        text-align: center;
+    }
+    .modal-btn { margin-top: 10px; width: 100%; }
+    .hidden { display: none !important; }
+
+</style>
+</head>
+<body>
+
+<div id="api-modal">
+    <div class="modal-content">
+        <h2>🌺 Garden Bot Setup</h2>
+        <p>To make the robot intelligent, enter your free <strong>Google Gemini API Key</strong>.</p>
+        <p style="font-size: 12px; color: #666;">(Or leave empty for "Demo Mode" with funny random replies)</p>
+        <input type="password" id="apiKeyInput" placeholder="Paste API Key Here" style="width: 90%; margin-bottom: 10px;">
+        <button class="modal-btn" onclick="startGame()">Start Chatting</button>
+        <p style="font-size: 10px; margin-top: 15px;"><a href="https://aistudio.google.com/app/apikey" target="_blank">Get a free key here</a></p>
+    </div>
+</div>
+
+<div class="scene">
+    <div class="mountain m-1"></div>
+    <div class="mountain m-2"></div>
+    <div class="mountain m-3"></div>
+    
+    <div class="village">
+        <div class="house" style="left:10%"></div>
+        <div class="house" style="left:30%"></div>
+        <div class="house" style="left:60%"></div>
+        <div class="house" style="left:80%"></div>
+    </div>
+
+    <div class="butterfly" style="animation-delay: 0s;"></div>
+    <div class="butterfly" style="animation-delay: 3s;"></div>
+    <div class="butterfly" style="animation-delay: 6s;"></div>
+
+    <div class="ground">
+        <div class="flower" style="left: 10%; color: #FF006E;">🌸</div>
+        <div class="flower" style="left: 25%; color: #FFBE0B;">🌻</div>
+        <div class="flower" style="left: 70%; color: #FB5607;">🌷</div>
+        <div class="flower" style="left: 85%; color: #8338EC;">🪻</div>
+    </div>
+</div>
+
+<div class="robot-container">
+    <div class="head">
+        <div class="bow">🎀</div>
+        <div class="eyes">
+            <div class="eye"></div>
+            <div class="eye"></div>
+        </div>
+        <div class="mouth"></div>
+    </div>
+    <div class="body"></div>
+    <div class="arm left"></div>
+    <div class="arm right"></div>
+</div>
+
+<div class="chat-wrapper">
+    <div class="chat-header">
+        🤖 Bella The Bot
+    </div>
+    <div class="chat-body" id="chatBody">
+        <div class="message msg-bot">
+            Hi! I'm Bella. I'm busy watching these butterflies, but I guess I can talk to you. What's up? 🦋
+        </div>
+    </div>
+    <div class="chat-input-area">
+        <input type="text" id="userInput" placeholder="Type a message..." onkeypress="handleEnter(event)">
+        <button onclick="sendMessage()">Send</button>
+    </div>
+</div>
+
+<script>
+    let apiKey = "";
+    let isDemoMode = false;
+
+    // Funny predefined responses for Demo Mode
+    const demoResponses = [
+        "My sensors indicate a 99% chance you should go touch grass... like me! 🌱",
+        "I asked the butterfly your question, and it just flew away. Rude.",
+        "Does this bolt make me look fat? 🤖",
+        "I'd answer that, but I'm currently downloading a personality update.",
+        "Humans are so funny. You have legs but sit at computers all day. Why?",
+        "Beep boop. Just kidding, I speak English. 😜",
+        "Look at that mountain! Much more interesting than your problems. Just kidding... tell me more.",
+        "Error 404: Care not found. Just joking! I love you! ❤️"
+    ];
+
+    function startGame() {
+        const input = document.getElementById('apiKeyInput').value;
+        if (input.trim() === "") {
+            isDemoMode = true;
+            addMessage("bot", "⚠️ Running in Demo Mode. I'll just say random funny things!");
+        } else {
+            apiKey = input.trim();
+        }
+        document.getElementById('api-modal').classList.add('hidden');
+    }
+
+    function handleEnter(e) {
+        if (e.key === 'Enter') sendMessage();
+    }
+
+    function addMessage(sender, text) {
+        const chatBody = document.getElementById('chatBody');
+        const div = document.createElement('div');
+        div.className = `message msg-${sender}`;
+        div.innerText = text;
+        chatBody.appendChild(div);
+        chatBody.scrollTop = chatBody.scrollHeight;
+    }
+
+    async function sendMessage() {
+        const input = document.getElementById('userInput');
+        const text = input.value.trim();
+        if (!text) return;
+
+        addMessage("user", text);
+        input.value = "";
+
+        // Show typing indicator logic (simplified as immediate response for demo)
+        const loadingDiv = document.createElement('div');
+        loadingDiv.className = 'message msg-bot';
+        loadingDiv.innerText = "...";
+        loadingDiv.id = "loading-msg";
+        document.getElementById('chatBody').appendChild(loadingDiv);
+
+        if (isDemoMode) {
+            setTimeout(() => {
+                document.getElementById('loading-msg').remove();
+                const randomResp = demoResponses[Math.floor(Math.random() * demoResponses.length)];
+                addMessage("bot", randomResp);
+            }, 1000);
+        } else {
+            try {
+                const response = await fetchGeminiResponse(text);
+                document.getElementById('loading-msg').remove();
+                addMessage("bot", response);
+            } catch (error) {
+                document.getElementById('loading-msg').remove();
+                addMessage("bot", "Oof! My circuits fried. (API Error)");
+            }
+        }
+    }
+
+    async function fetchGeminiResponse(userText) {
+        // System Prompt to make the AI funny and sassy
+        const systemPrompt = "You are Bella, a cute but sassy girlish robot sitting in a beautiful garden. You love nature, butterflies, and teasing humans playfully. Keep your responses short, funny, and engaging. Avoid long paragraphs.";
+        
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+        
+        const payload = {
+            contents: [{
+                parts: [{ text: systemPrompt + "\n\nUser: " + userText }]
+            }]
+        };
+
+        try {
+            const res = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+            return data.candidates[0].content.parts[0].text;
+        } catch (e) {
+            console.error(e);
+            return "My wifi signal is stuck in a tree. Try again?";
+        }
+    }
+</script>
+
+</body>
+</html>
