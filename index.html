@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>Karishma AI: Connected</title>
+<title>Karishma: Diagnostic Mode</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎀</text></svg>">
 
 <style>
@@ -20,11 +20,10 @@
         margin: 0; padding: 0; width: 100%; height: 100%;
         overflow: hidden; background: #000;
         font-family: 'Segoe UI', system-ui, sans-serif;
-        display: flex; flex-direction: row; /* Default: Side by Side */
+        display: flex; flex-direction: row; 
     }
 
     /* --- LAYOUT SYSTEM --- */
-    /* 1. VISUAL WORLD (Left) */
     #visual-area {
         flex: 1; position: relative; overflow: hidden;
         background: var(--sky-day); transition: background 1.5s ease;
@@ -32,7 +31,6 @@
     }
     #visual-area.night { background: var(--sky-night); }
 
-    /* 2. CHAT AREA (Right) */
     #chat-area {
         width: 380px; background: var(--chat-bg); 
         display: flex; flex-direction: column;
@@ -40,7 +38,7 @@
         box-shadow: -5px 0 20px rgba(0,0,0,0.1);
     }
 
-    /* MOBILE LAYOUT (Vertical) */
+    /* MOBILE LAYOUT */
     @media (max-width: 800px) {
         body { flex-direction: column; }
         #visual-area { height: 55%; flex: none; }
@@ -48,49 +46,27 @@
     }
 
     /* --- WORLD OBJECTS --- */
-    
-    /* Mountains (Vector Art) */
     .mountains-svg {
         position: absolute; bottom: 0; left: 0; width: 100%; height: auto;
         pointer-events: none; z-index: 2; filter: drop-shadow(0 0 10px rgba(0,0,0,0.1));
     }
-    
-    /* Ground */
     .ground {
         position: absolute; bottom: 0; width: 100%; height: 12%;
         background: #76b852; z-index: 3; border-top: 6px solid #6fa148;
     }
     #visual-area.night .ground { filter: brightness(0.4); }
 
-    /* Celestial Bodies (Clickable Toggle) */
+    /* Celestial Bodies */
     .celestial-toggle {
         position: absolute; top: 20px; right: 20px; width: 60px; height: 60px;
         z-index: 10; cursor: pointer; transition: transform 0.5s;
     }
     .celestial-toggle:active { transform: scale(0.9); }
-    
     .sun { width: 100%; height: 100%; background: #ffd700; border-radius: 50%; box-shadow: 0 0 40px #ffd700; animation: spin 40s linear infinite; }
     .moon { width: 100%; height: 100%; background: transparent; border-radius: 50%; box-shadow: -15px 10px 0 2px #fff; display: none; }
     #visual-area.night .sun { display: none; }
     #visual-area.night .moon { display: block; }
     @keyframes spin { 100% { transform: rotate(360deg); } }
-
-    /* Clouds */
-    .cloud {
-        position: absolute; background: #fff; border-radius: 50px; opacity: 0.8;
-        animation: floatCloud 60s linear infinite; z-index: 2;
-    }
-    .c1 { width: 100px; height: 40px; top: 15%; left: -20%; }
-    .c2 { width: 60px; height: 25px; top: 25%; left: -10%; animation-delay: 20s; }
-    @keyframes floatCloud { 0% { left: -20%; } 100% { left: 120%; } }
-    #visual-area.night .cloud { opacity: 0.1; }
-
-    /* Stars (Night) */
-    .star {
-        position: absolute; width: 3px; height: 3px; background: #fff;
-        border-radius: 50%; opacity: 0; transition: opacity 1s;
-    }
-    #visual-area.night .star { opacity: 0.9; }
 
     /* House */
     .house-group {
@@ -130,7 +106,6 @@
         animation: float 4s ease-in-out infinite;
     }
     @keyframes float { 0%,100%{transform:translate(-50%, 0);} 50%{transform:translate(-50%, -10px);} }
-
     .part-click { cursor: pointer; transition: 0.1s; }
     .part-click:active { filter: brightness(1.2); transform: scale(0.95); }
 
@@ -140,7 +115,6 @@
         box-shadow: 0 5px 20px rgba(0,0,0,0.2); z-index: 2;
     }
     .bow { position: absolute; top: -25px; right: -5px; font-size: 40px; filter: drop-shadow(2px 2px 0 rgba(0,0,0,0.2)); }
-    
     .r-face {
         display: flex; justify-content: space-around; align-items: center;
         height: 100%; padding: 0 20px; box-sizing: border-box;
@@ -150,21 +124,18 @@
         animation: blink 4s infinite; box-shadow: 0 0 10px #00e5ff;
     }
     @keyframes blink { 0%,48%,52%,100%{height:24px;} 50%{height:2px;} }
-
     .r-body {
         width: 75px; height: 85px; background: var(--robot-main);
         border-radius: 25px; margin-top: -15px; border: 5px solid #fff;
         z-index: 1; display: flex; justify-content: center; align-items: center;
     }
     .r-heart { font-size: 35px; color: #fff; text-shadow: 0 2px 5px rgba(0,0,0,0.2); }
-
     .r-arm {
         width: 20px; height: 60px; background: var(--robot-accent);
         border: 4px solid #fff; border-radius: 10px; position: absolute; top: 90px;
     }
     .r-arm.left { left: -25px; transform: rotate(25deg); }
     .r-arm.right { right: -25px; transform: rotate(-25deg); }
-
     .dance { animation: danceMove 0.6s infinite; }
     @keyframes danceMove { 0%,100%{transform:translateX(-50%) rotate(0);} 25%{transform:translateX(-50%) rotate(-8deg);} 75%{transform:translateX(-50%) rotate(8deg);} }
 
@@ -174,19 +145,15 @@
         font-weight: bold; font-size: 16px; border-bottom: 1px solid #eee;
         display: flex; justify-content: space-between; align-items: center;
     }
-    .status-badge { font-size: 10px; background: #e0f7fa; color: #006064; padding: 2px 8px; border-radius: 10px; }
-
     .chat-history {
         flex: 1; overflow-y: auto; padding: 20px;
         display: flex; flex-direction: column; gap: 15px;
     }
-    
     .msg {
         padding: 12px 16px; border-radius: 18px; font-size: 14px; max-width: 85%;
         line-height: 1.5; animation: pop 0.3s ease; box-shadow: 0 2px 5px rgba(0,0,0,0.05);
     }
     @keyframes pop { from{transform:scale(0.8); opacity:0;} to{transform:scale(1); opacity:1;} }
-    
     .u-msg { align-self: flex-end; background: var(--robot-main); color: #fff; border-bottom-right-radius: 2px; }
     .b-msg { align-self: flex-start; background: #fff; color: #333; border-bottom-left-radius: 2px; border: 1px solid #eee; }
 
@@ -199,7 +166,6 @@
         font-size: 15px; outline: none; transition: border 0.3s;
     }
     input:focus { border-color: var(--robot-main); }
-    
     button {
         background: var(--robot-main); color: white; border: none;
         width: 45px; height: 45px; border-radius: 50%; 
@@ -208,27 +174,24 @@
     }
     button:active { transform: scale(0.9); }
 
-    /* Status Popup */
-    #status-toast {
-        position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
-        background: rgba(0,0,0,0.7); color: #fff; padding: 8px 20px; border-radius: 20px;
-        font-size: 12px; z-index: 500; opacity: 0; transition: opacity 0.5s;
+    /* DIAGNOSTIC ERROR BAR */
+    #diag-box {
+        position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
+        background: #d32f2f; color: #fff; padding: 10px 20px; border-radius: 10px;
+        font-size: 12px; z-index: 500; display: none; width: 80%; text-align: center;
+        border: 2px solid white; box-shadow: 0 5px 15px rgba(0,0,0,0.3);
     }
 </style>
 </head>
 <body>
 
 <div id="visual-area">
-    <div id="status-toast"></div>
+    <div id="diag-box"></div>
     
     <div class="celestial-toggle" onclick="toggleTime()">
         <div class="sun"></div>
         <div class="moon"></div>
     </div>
-
-    <div class="cloud c1"></div>
-    <div class="cloud c2"></div>
-    <div id="star-container"></div>
     
     <svg class="mountains-svg" viewBox="0 0 1000 300" preserveAspectRatio="none">
         <path d="M0,300 L250,100 L500,300 L750,50 L1000,300 Z" fill="#9c27b0" opacity="0.6"></path>
@@ -237,27 +200,20 @@
     <div class="ground"></div>
 
     <div class="house-group" onclick="interact('house')">
-        <div class="roof"></div>
-        <div class="chimney"></div>
-        <div class="smoke"></div>
+        <div class="roof"></div><div class="chimney"></div><div class="smoke"></div>
         <div class="house-base"><div class="door"></div></div>
     </div>
 
     <div class="sign-group" onclick="interact('sign')">
-        <div class="board">Code By<br>Abhik</div>
-        <div class="pole"></div>
+        <div class="board">Code By<br>Abhik</div><div class="pole"></div>
     </div>
 
     <div class="robot-wrapper" id="karishma">
         <div class="r-head part-click" onclick="interact('head')">
             <div class="bow">🎀</div>
-            <div class="r-face">
-                <div class="r-eye"></div><div class="r-eye"></div>
-            </div>
+            <div class="r-face"><div class="r-eye"></div><div class="r-eye"></div></div>
         </div>
-        <div class="r-body part-click" onclick="interact('tummy')">
-            <div class="r-heart">♥</div>
-        </div>
+        <div class="r-body part-click" onclick="interact('tummy')"><div class="r-heart">♥</div></div>
         <div class="r-arm left part-click" onclick="interact('hand')"></div>
         <div class="r-arm right part-click" onclick="interact('hand')"></div>
     </div>
@@ -265,11 +221,8 @@
 
 <div id="chat-area">
     <div class="chat-header">
-        <div>
-            Karishma AI 
-            <span class="status-badge" id="conn-status">Online</span>
-        </div>
-        <span style="font-size:14px; cursor:pointer;" onclick="reset()">🗑️</span>
+        <div>Karishma AI</div>
+        <span style="font-size:14px; cursor:pointer;" onclick="location.reload()">🔄</span>
     </div>
     <div class="chat-history" id="chatList"></div>
     <div class="input-area">
@@ -279,52 +232,36 @@
 </div>
 
 <script>
-    // ==========================================
-    // API SETUP (VERIFIED)
-    // ==========================================
+    // YOUR API KEY
     const API_KEY = "AIzaSyDqcavif5UfWGLY1w7YCmR-Oi2Anz9GloU"; 
-    // Trying multiple model versions ensures high availability
-    const MODELS = ["gemini-1.5-flash", "gemini-1.5-flash-latest", "gemini-pro"];
+    
+    // MODEL LIST (Will try one by one)
+    const MODELS = ["gemini-1.5-flash", "gemini-1.5-pro", "gemini-pro"];
     
     const SYSTEM = "You are Karishma, a sassy and cute robot. Creator: Abhik Dutta. Keep answers short (max 20 words) and fun. Use emojis.";
     let history = [];
 
-    // --- INIT ---
     window.onload = function() {
         const h = new Date().getHours();
         if(h >= 18 || h < 6) toggleTime(true);
-        generateStars();
-        addMsg('bot', "Namaste! I am connected and ready! 🎀");
+        addMsg('bot', "Namaste! Connecting to Abhik's server... 🎀");
+        // Test connection immediately
+        callAI("Hello, say Namaste!", true); 
     };
 
     function toggleTime(forceNight) {
         const area = document.getElementById('visual-area');
-        if (forceNight || !area.classList.contains('night')) {
-            area.classList.add('night');
-        } else {
-            area.classList.remove('night');
-        }
+        if (forceNight || !area.classList.contains('night')) area.classList.add('night');
+        else area.classList.remove('night');
     }
 
-    function generateStars() {
-        const cont = document.getElementById('star-container');
-        for(let i=0; i<30; i++){
-            let s = document.createElement('div');
-            s.className='star';
-            s.style.left = Math.random()*100 + '%';
-            s.style.top = Math.random()*50 + '%';
-            cont.appendChild(s);
-        }
-    }
-
-    // --- INTERACTION ---
     function interact(type) {
         const r = document.getElementById('karishma');
         r.classList.add('dance');
         setTimeout(() => r.classList.remove('dance'), 1000);
 
         let txt = "";
-        if(type === 'sign') txt = "User pointed at Abhik Dutta's sign. Praise Abhik enthusiastically!";
+        if(type === 'sign') txt = "User pointed at Abhik Dutta's sign. Praise Abhik!";
         if(type === 'head') txt = "User patted your head. Be cute!";
         if(type === 'tummy') txt = "User poked your tummy. Giggle!";
         if(type === 'house') txt = "User looked at your house. Welcome them!";
@@ -333,7 +270,6 @@
         callAI(txt, true);
     }
 
-    // --- CHAT LOGIC ---
     function addMsg(role, text) {
         const div = document.createElement('div');
         div.className = `msg ${role === 'user' ? 'u-msg' : 'b-msg'}`;
@@ -343,28 +279,19 @@
         list.scrollTop = list.scrollHeight;
     }
 
-    function reset() {
-        history = [];
-        document.getElementById('chatList').innerHTML = '';
-        addMsg('bot', "Memory Cleared 🧹");
-    }
-
     async function send() {
         const inp = document.getElementById('inp');
         const txt = inp.value.trim();
         if(!txt) return;
-        
         addMsg('user', txt);
         inp.value = '';
         callAI(txt, false);
     }
 
+    // --- DIAGNOSTIC API CALL ---
     async function callAI(text, isHidden) {
-        const statusEl = document.getElementById('conn-status');
         if(!isHidden) addMsg('bot', "...");
-        statusEl.innerText = "Thinking...";
 
-        // Update History
         let msgs = [...history];
         if(isHidden) msgs.push({role: "user", parts: [{text: `[SYSTEM EVENT: ${text}]`}]});
         else {
@@ -378,8 +305,9 @@
 
         let success = false;
         let reply = "";
+        let errorMsg = "";
 
-        // Model Fallback Loop
+        // Loop through models
         for (let model of MODELS) {
             try {
                 const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${API_KEY}`;
@@ -391,15 +319,22 @@
                 
                 const data = await res.json();
                 
-                if (res.ok && data.candidates) {
+                if (!res.ok) {
+                    // CAPTURE THE REAL ERROR
+                    errorMsg = data.error?.message || res.statusText;
+                    console.log(`Model ${model} failed: ${errorMsg}`);
+                    continue; // Try next model
+                }
+
+                if (data.candidates) {
                     reply = data.candidates[0].content.parts[0].text;
                     success = true;
-                    break; // Connected!
+                    break; // Success!
                 }
-            } catch (e) { console.log(`Model ${model} failed, retrying...`); }
+            } catch (e) { 
+                errorMsg = e.message;
+            }
         }
-
-        statusEl.innerText = "Online";
 
         if(!isHidden) {
             const list = document.getElementById('chatList');
@@ -407,20 +342,19 @@
         }
 
         if (success) {
-            addMsg('bot', reply);
-            if(!isHidden) history.push({role: "model", parts: [{text: reply}]});
-            showToast("Replied! ✨");
+            if(isHidden && text.includes("Hello, say Namaste")) addMsg('bot', "Connected! Ask me anything! ✨");
+            else {
+                addMsg('bot', reply);
+                if(!isHidden) history.push({role: "model", parts: [{text: reply}]});
+            }
+            document.getElementById('diag-box').style.display = 'none';
         } else {
-            addMsg('bot', "⚠️ API Error. Please check your internet.");
-            showToast("Connection Failed ❌");
+            // DISPLAY THE REAL ERROR
+            const diag = document.getElementById('diag-box');
+            diag.style.display = 'block';
+            diag.innerHTML = `<strong>CONNECTION FAILED</strong><br>Google Error: ${errorMsg}<br><br><em>(Hint: Go to Google Cloud Console > Select Project > Enable 'Generative Language API')</em>`;
+            addMsg('bot', "❌ I cannot connect. Read the red box above.");
         }
-    }
-
-    function showToast(msg) {
-        const t = document.getElementById('status-toast');
-        t.innerText = msg;
-        t.style.opacity = 1;
-        setTimeout(() => t.style.opacity = 0, 2000);
     }
 </script>
 </body>
