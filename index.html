@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>Karishma AI</title>
+<title>Karishma AI: Live</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎀</text></svg>">
 
 <style>
@@ -193,7 +193,11 @@
 <script>
     // --- YOUR API KEY ---
     const API_KEY = "AIzaSyDqcavif5UfWGLY1w7YCmR-Oi2Anz9GloU"; 
-    const MODELS = ["gemini-1.5-flash", "gemini-1.5-pro", "gemini-pro"];
+    
+    // UPDATED MODELS: Removed 'gemini-pro' to prevent v1beta error
+    // Now using only 1.5 Flash (Fastest/Stable) and 1.5 Pro (Smarter)
+    const MODELS = ["gemini-1.5-flash", "gemini-1.5-pro"];
+    
     const SYSTEM = "You are Karishma, a sassy and cute robot. Creator: Abhik Dutta. Keep answers short (max 20 words) and fun. Use emojis.";
     
     let history = [];
@@ -275,6 +279,7 @@
         let success = false;
         let reply = "";
 
+        // Loop through valid models
         for (let model of MODELS) {
             try {
                 const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${API_KEY}`;
@@ -291,9 +296,9 @@
                     success = true;
                     break;
                 } else {
-                    console.warn(data);
+                    console.log(`Model ${model} failed:`, data.error?.message);
                 }
-            } catch (e) { console.log("Retry..."); }
+            } catch (e) { console.log("Network error on " + model); }
         }
 
         badge.innerText = "● Live";
@@ -308,7 +313,7 @@
             if(!isHidden) history.push({role: "model", parts: [{text: reply}]});
             badge.className = "status-badge";
         } else {
-            addMsg('bot', "⚠️ Connection Error. (Check Google Cloud Console 'Referrers')");
+            addMsg('bot', "⚠️ Connection Failed. Check your Internet or API Limit.");
             badge.innerText = "Offline";
             badge.className = "status-badge error";
         }
