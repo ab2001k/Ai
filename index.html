@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Karishma AI: Safe Mode</title>
+<title>Karishma AI: Lazy Load</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎀</text></svg>">
 
 <style>
@@ -100,19 +100,19 @@
 
 <div id="chat-area">
     <div class="chat-header">
-        <div>Karishma AI</div><div class="status-badge" id="status">● Live</div>
+        <div>Karishma AI</div><div class="status-badge" id="status">● Ready</div>
     </div>
     <div class="chat-history" id="chat"></div>
-    <div class="input-area"><input id="inp" placeholder="Talk to Karishma..." onkeypress="if(event.key==='Enter')send()"><button onclick="send()">➤</button></div>
+    <div class="input-area"><input id="inp" placeholder="Type Hi to start..." onkeypress="if(event.key==='Enter')send()"><button onclick="send()">➤</button></div>
 </div>
 
 <script>
     // --- API CONFIG ---
     const API_KEY = "AIzaSyDqcavif5UfWGLY1w7YCmR-Oi2Anz9GloU";
     
-    // SAFE MODE: Only use models guaranteed to be free
-    // Removed "gemini-pro-latest" and "gemini-2.5" to avoid quota error
-    const MODELS = ["gemini-1.5-flash", "gemini-1.5-flash-latest", "gemini-1.5-pro"];
+    // FORCED SAFE MODEL: gemini-1.5-flash
+    // This is the only one you should use to avoid Quota errors.
+    const MODEL_NAME = "gemini-1.5-flash"; 
     
     const SYSTEM_PROMPT = `You are Karishma AI. Creator: Abhik Dutta.
     Personality: Cute, sassy, playful robot girl.
@@ -121,12 +121,12 @@
     let history = [];
 
     window.onload = () => {
-        addBot("Namaste! Reverting to Safe Mode (Flash 1.5)... 🎀");
+        // NO AUTO CONNECT - SAVES QUOTA
+        addBot("Namaste! Type 'Hi' to wake me up! 🎀");
+        
         const h = new Date().getHours();
         if(h >= 18 || h < 6) toggleTime(true);
         generateFireflies();
-        // Warm up with simple ping
-        callAI("Hello", true);
     };
 
     function toggleTime(forceNight) {
@@ -199,36 +199,29 @@
             contents: [{role: "user", parts: [{text: SYSTEM_PROMPT}]}, ...msgs]
         };
 
-        let reply = null;
-
-        // Try Safe Models Only
-        for(let m of MODELS) {
-            try {
-                const url = `https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent?key=${API_KEY}`;
-                const res = await fetch(url, {
-                    method: "POST",
-                    headers: {"Content-Type": "application/json"},
-                    body: JSON.stringify(payload)
-                });
-                const data = await res.json();
-                
-                if(data.candidates) {
-                    reply = data.candidates[0].content.parts[0].text;
-                    status.innerText = "● Live";
-                    break; 
-                } else if(data.error && data.error.code === 429) {
-                    console.log("Quota exceeded on " + m + ", trying next...");
-                }
-            } catch(e) { console.log(e); }
-        }
-
-        if(reply) {
-            if(!hidden || !text.includes("Hello")) addBot(reply);
-            if(!hidden) history.push({role: "model", parts: [{text: reply}]});
-        } else {
+        try {
+            // Using v1beta + 1.5-flash
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent?key=${API_KEY}`;
+            const res = await fetch(url, {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+            
+            if(data.candidates) {
+                const reply = data.candidates[0].content.parts[0].text;
+                if(!hidden || !text.includes("Hello")) addBot(reply);
+                if(!hidden) history.push({role: "model", parts: [{text: reply}]});
+                status.innerText = "● Live";
+            } else if (data.error) {
+                addBot(`⚠️ Google Error: ${data.error.message}`);
+                status.innerText = "Error";
+            }
+        } catch(e) { 
+            console.log(e);
+            addBot("⚠️ Connection Error. (Quota or Network)");
             status.innerText = "Offline";
-            status.className = "status-badge error";
-            addBot("⚠️ Quota Limit. Please wait 1 min and try again. (Free Tier Limit)");
         }
     }
 </script>
