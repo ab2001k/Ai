@@ -3,13 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>Karishma: Garden AI</title>
+<title>Karishma: Firefly Garden</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎀</text></svg>">
 
 <style>
     :root {
         --sky-day-top: #4CC9F0; --sky-day-bot: #4361EE;
-        --sky-night-top: #0B1026; --sky-night-bot: #2B32B2;
+        --sky-night-top: #020111; --sky-night-bot: #191D3A;
         --grass: #70E000; --grass-dark: #38B000;
         --robot-color: #FF006E; --robot-accent: #FFBE0B;
     }
@@ -26,7 +26,7 @@
     .scene {
         position: absolute; width: 100%; height: 100%;
         background: linear-gradient(to bottom, var(--sky-day-top), var(--sky-day-bot));
-        transition: background 2s ease;
+        transition: background 1.5s ease;
         z-index: 1; overflow: hidden;
     }
     .scene.night {
@@ -42,60 +42,44 @@
     .cloud::after, .cloud::before {
         content: ''; position: absolute; background: inherit; border-radius: 50%;
     }
-    .c1 { width: 100px; height: 40px; top: 10%; left: -100px; animation-duration: 25s; }
+    .c1 { width: 100px; height: 40px; top: 10%; left: -100px; animation-duration: 28s; }
     .c1::after { width: 50px; height: 50px; top: -25px; left: 15px; }
     .c1::before { width: 40px; height: 40px; top: -15px; left: 50px; }
     
-    .c2 { width: 80px; height: 30px; top: 20%; left: -100px; animation-duration: 35s; animation-delay: 5s; transform: scale(0.8); }
-    .c2::after { width: 40px; height: 40px; top: -20px; left: 10px; }
-    
     @keyframes floatCloud { 0% { left: -150px; } 100% { left: 100%; } }
-    .scene.night .cloud { opacity: 0.3; background: #555; }
+    .scene.night .cloud { opacity: 0.1; background: #333; }
 
-    /* BIRD */
-    .bird {
-        position: absolute; top: 15%; left: -50px;
-        width: 20px; height: 10px; border-top: 2px solid #000; border-left: 2px solid #000;
-        transform: rotate(45deg); z-index: 2;
-        animation: flyBird 20s linear infinite; animation-delay: 10s;
+    /* FIREFLIES (Night Only) */
+    .firefly {
+        position: absolute; width: 4px; height: 4px;
+        background: #FFFF00; border-radius: 50%;
+        box-shadow: 0 0 10px #FFFF00;
+        opacity: 0; z-index: 5;
+        animation: glow 3s infinite ease-in-out;
     }
-    @keyframes flyBird { 
-        0% { left: -50px; top: 30%; } 
-        20% { top: 20%; } 
-        40% { top: 30%; } 
-        100% { left: 110%; top: 10%; } 
+    @keyframes glow { 0%, 100% { opacity: 0; transform: translateY(0); } 50% { opacity: 1; transform: translateY(-20px); } }
+    
+    /* CELESTIAL TOGGLE */
+    .celestial-toggle {
+        position: absolute; top: 20px; right: 20px;
+        width: 60px; height: 60px; z-index: 20; cursor: pointer;
+        transition: transform 0.5s;
     }
-    .scene.night .bird { display: none; }
-
-    /* CELESTIAL */
-    .celestial {
-        position: absolute; top: 50px; right: 50px;
-        cursor: pointer; transition: transform 0.3s; z-index: 2;
-    }
-    .sun {
-        width: 70px; height: 70px; background: #FFD60A;
-        border-radius: 50%; box-shadow: 0 0 50px #FFD60A;
+    .celestial-toggle:active { transform: scale(0.9); }
+    
+    .sun-icon {
+        width: 100%; height: 100%; background: #FFD60A;
+        border-radius: 50%; box-shadow: 0 0 40px #FFD60A;
         animation: spin 30s linear infinite;
+        position: absolute;
     }
-    .moon {
-        width: 60px; height: 60px; background: transparent;
+    .moon-icon {
+        width: 100%; height: 100%; background: transparent;
         border-radius: 50%; box-shadow: -15px 10px 0 5px #F4F6F8;
-        display: none;
+        position: absolute; display: none;
     }
-    .scene.night .sun { display: none; }
-    .scene.night .moon { display: block; }
-
-    /* RAIN */
-    .rain {
-        position: absolute; width: 100%; height: 100%;
-        z-index: 8; pointer-events: none; display: none;
-    }
-    .drop {
-        position: absolute; bottom: 100%; width: 2px; height: 15px;
-        background: rgba(255, 255, 255, 0.6);
-        animation: fall 1s linear infinite;
-    }
-    @keyframes fall { to { transform: translateY(100vh); } }
+    .scene.night .sun-icon { display: none; }
+    .scene.night .moon-icon { display: block; }
 
     /* MOUNTAINS */
     .mountain {
@@ -129,13 +113,13 @@
         border-radius: 40px 40px 0 0; border: 2px solid #3E2723;
     }
 
-    /* GROUND & FLOWERS */
+    /* GROUND */
     .ground {
         position: absolute; bottom: 0; width: 100%; height: 35%;
         background: linear-gradient(to bottom, var(--grass), var(--grass-dark));
         z-index: 4; border-top: 8px solid #9EF01A;
     }
-    .scene.night .ground { filter: brightness(0.4); }
+    .scene.night .ground { filter: brightness(0.3); }
     
     .flower {
         position: absolute; bottom: 20px; font-size: 24px;
@@ -143,7 +127,7 @@
     }
     @keyframes sway { 0%, 100% { transform: rotate(-5deg); } 50% { transform: rotate(5deg); } }
 
-    /* KARISHMA */
+    /* ROBOT */
     .robot-group {
         position: absolute; bottom: 15%; left: 40%;
         z-index: 10;
@@ -156,8 +140,7 @@
     .head {
         width: 90px; height: 80px; background: var(--robot-color);
         border-radius: 30px; border: 5px solid #000;
-        position: relative; box-shadow: 5px 5px 0px rgba(0,0,0,0.2);
-        z-index: 2;
+        position: relative; box-shadow: 5px 5px 0px rgba(0,0,0,0.2); z-index: 2;
     }
     .eyes { display: flex; justify-content: space-between; padding: 25px 20px 0; }
     .eye {
@@ -187,8 +170,7 @@
         border: 3px solid #000; border-radius: 0 0 10px 10px;
         position: absolute; bottom: -35px;
     }
-    .leg.left { left: 5px; }
-    .leg.right { right: 5px; }
+    .leg.left { left: 5px; } .leg.right { right: 5px; }
 
     /* SIGNPOST */
     .signpost {
@@ -199,11 +181,11 @@
         background: #F4A261; border: 3px solid #6D4C41;
         padding: 5px; border-radius: 5px;
         color: #3E2723; font-weight: bold; font-size: 10px;
-        text-align: center; width: 80px; box-shadow: 2px 2px 0 rgba(0,0,0,0.3);
+        text-align: center; width: 80px;
     }
     .sign-pole { width: 6px; height: 50px; background: #6D4C41; margin: 0 auto; }
 
-    /* --- CHAT UI --- */
+    /* CHAT UI */
     .chat-wrapper {
         position: fixed; top: 0; left: 0; width: 100%; height: 100%;
         z-index: 100; pointer-events: none;
@@ -219,7 +201,7 @@
         border-radius: 20px 20px 0 0; border: 2px solid #000; border-bottom: none;
         box-shadow: 0 -5px 30px rgba(0,0,0,0.3);
         display: flex; flex-direction: column;
-        height: 45vh; /* Adjusted for mobile keyboard */
+        height: 40vh; /* Shorter to fit mobile better */
         transition: height 0.3s;
     }
     .chat-header {
@@ -228,7 +210,7 @@
         border-bottom: 2px solid #000;
         display: flex; justify-content: space-between; align-items: center;
     }
-    .trash-btn { background: none; border: none; font-size: 16px; cursor: pointer; color: #FFF; }
+    .trash-btn { background: none; border: none; font-size: 16px; cursor: pointer; color: white; }
 
     .chat-body {
         flex: 1; overflow-y: auto; padding: 15px;
@@ -241,7 +223,7 @@
         padding-bottom: max(10px, env(safe-area-inset-bottom));
     }
     input {
-        flex: 1; padding: 12px; border-radius: 20px; border: 2px solid #999;
+        flex: 1; padding: 10px; border-radius: 20px; border: 2px solid #999;
         font-size: 16px; outline: none; -webkit-appearance: none;
     }
     button.send-btn {
@@ -249,7 +231,6 @@
         padding: 0 20px; border-radius: 20px; font-weight: bold; cursor: pointer;
     }
 
-    /* BUBBLES */
     .message {
         padding: 10px 15px; border-radius: 15px; font-size: 15px;
         max-width: 85%; line-height: 1.4; animation: popIn 0.3s; word-wrap: break-word;
@@ -258,23 +239,28 @@
     .msg-bot { align-self: flex-start; background: #FFF; color: #000; border: 2px solid #000; border-radius: 15px 15px 15px 0; }
     
     @keyframes popIn { from { transform: scale(0); } to { transform: scale(1); } }
-    @keyframes blink { 0%, 48%, 52%, 100% { height: 25px; } 50% { height: 2px; } }
     .robot-group.dance { animation: dance 0.8s infinite; }
     @keyframes dance { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-15px) rotate(5deg); } }
 
-    #debug-model { font-size: 10px; color: rgba(255,255,255,0.7); }
+    /* ERROR MODAL */
+    .error-box {
+        background: #FFDDDD; border: 2px solid red; color: darkred;
+        padding: 10px; font-size: 12px; margin: 10px; border-radius: 10px;
+        display: none;
+    }
 </style>
 </head>
 <body>
 
 <div class="scene" id="skyScene">
     <div class="cloud c1"></div>
-    <div class="cloud c2"></div>
-    <div class="bird"></div>
     
-    <div class="celestial sun" id="sunObj" onclick="handleTouch('sun')"></div>
-    <div class="celestial moon" id="moonObj" onclick="handleTouch('moon')"></div>
-    <div class="rain" id="rainContainer"></div>
+    <div class="celestial-toggle" onclick="toggleDayNight()">
+        <div class="sun-icon"></div>
+        <div class="moon-icon"></div>
+    </div>
+    
+    <div id="fireflyContainer"></div>
 
     <div class="mountain m-1"></div>
     <div class="mountain m-2"></div>
@@ -313,12 +299,12 @@
 <div class="chat-wrapper">
     <div class="chat-container">
         <div class="chat-header">
-            <div>
-                <span>🎀 Karishma AI</span>
-                <span id="debug-model"></span>
-            </div>
+            <span>🎀 Karishma AI</span>
             <button class="trash-btn" onclick="clearMemory()">🗑️</button>
         </div>
+        
+        <div id="apiError" class="error-box"></div>
+
         <div class="chat-body" id="chatBody"></div>
         <div class="chat-input-area">
             <input type="text" id="userInput" placeholder="Talk to Karishma..." onkeypress="handleEnter(event)">
@@ -329,70 +315,41 @@
 
 <script>
     // --- API KEYS ---
-    const GEMINI_API_KEY = "AIzaSyDsJ6q9Q_jjFUkdJx-xftstOdNH0-k9ipc";
-    const WEATHER_API_KEY = "a0820c1dfccf98ff4a5d0a2c36b3fd47"; 
+    // Please verify this key is active for "Generative Language API"
+    const GEMINI_API_KEY = "AIzaSyDsJ6q9Q_jjFUkdJx-xftstOdNH0-k9ipc"; 
     
-    // --- SMART MODEL SELECTOR ---
-    // If one fails, it tries the next one automatically.
-    const MODEL_LIST = [
-        "gemini-1.5-flash",
-        "gemini-1.5-flash-001",
-        "gemini-1.5-flash-latest",
-        "gemini-2.0-flash-exp",
-        "gemini-pro"
-    ];
-    let currentModelIndex = 0;
-
+    // --- INIT ---
     let chatHistory = [];
-    const SYSTEM_INSTRUCTION = `You are Karishma, a sassy and cute Indian robot girl living in a garden. 
+    const SYSTEM_INSTRUCTION = `You are Karishma, a sassy and cute Indian robot girl. 
     Keep answers short, funny, and emoji-filled. 
     Start thoughts with "T: " and shouts with "S: ".`;
 
-    // --- INIT ---
     window.onload = function() {
-        checkRealWeather(); 
+        createFireflies();
         loadMemory();
         if(chatHistory.length === 0) {
-            addMessageUI("bot", "Namaste! I am checking the clouds... ☁️");
+            addMessageUI("bot", "Namaste! I am ready to talk! ✨");
         }
+        
+        // Auto set night based on time
+        const hour = new Date().getHours();
+        if (hour >= 18 || hour < 6) document.getElementById('skyScene').classList.add('night');
     };
 
-    // --- REAL WEATHER ---
-    async function checkRealWeather() {
-        const url = `https://api.openweathermap.org/data/2.5/weather?lat=26.14&lon=91.73&appid=${WEATHER_API_KEY}&units=metric`;
-        try {
-            const res = await fetch(url);
-            const data = await res.json();
-            const condition = data.weather[0].main.toLowerCase();
-            const isNight = (data.weather[0].icon.includes('n'));
-
-            const scene = document.getElementById('skyScene');
-            if (isNight) scene.classList.add('night');
-            else scene.classList.remove('night');
-
-            if (condition.includes('rain') || condition.includes('drizzle')) {
-                document.getElementById('rainContainer').style.display = 'block';
-                createRain();
-            } else {
-                document.getElementById('rainContainer').style.display = 'none';
-            }
-        } catch (error) {
-            // Backup time check
-            const hour = new Date().getHours();
-            if (hour >= 18 || hour < 6) document.getElementById('skyScene').classList.add('night');
-        }
+    // --- VISUALS ---
+    function toggleDayNight() {
+        document.getElementById('skyScene').classList.toggle('night');
     }
 
-    function createRain() {
-        const container = document.getElementById('rainContainer');
-        container.innerHTML = ''; 
-        for(let i=0; i<50; i++) {
-            let drop = document.createElement('div');
-            drop.className = 'drop';
-            drop.style.left = Math.random() * 100 + '%';
-            drop.style.animationDuration = Math.random() * 1 + 0.5 + 's';
-            drop.style.animationDelay = Math.random() * 2 + 's';
-            container.appendChild(drop);
+    function createFireflies() {
+        const container = document.getElementById('fireflyContainer');
+        for(let i=0; i<20; i++) {
+            let f = document.createElement('div');
+            f.className = 'firefly';
+            f.style.left = Math.random() * 100 + '%';
+            f.style.top = Math.random() * 60 + '%';
+            f.style.animationDelay = Math.random() * 3 + 's';
+            container.appendChild(f);
         }
     }
 
@@ -404,12 +361,10 @@
 
         let reply = "";
         switch(part) {
-            case 'hand': reply = "High five! ✋ My hands are robotic!"; break;
-            case 'head': reply = "Hey! Watch the bow! 🎀"; break;
-            case 'body': reply = "I am ticklish! Hehe 🤖"; break;
-            case 'house': reply = "My cute house! 🏠"; break;
-            case 'sun': reply = "It's sunny and bright! 😎"; break;
-            case 'moon': reply = "The moon is sleeping... 🌙"; break;
+            case 'hand': reply = "High five! ✋"; break;
+            case 'head': reply = "Hey! My bow is vintage! 🎀"; break;
+            case 'body': reply = "Beep boop! 🤖"; break;
+            case 'house': reply = "Home sweet home! 🏠"; break;
         }
         addMessageUI("bot", reply);
     }
@@ -431,6 +386,9 @@
         const text = input.value.trim();
         if (!text) return;
 
+        // Reset Error
+        document.getElementById('apiError').style.display = 'none';
+
         addMessageUI("user", text);
         input.value = "";
         chatHistory.push({ role: "user", parts: [{ text: text }] });
@@ -442,49 +400,27 @@
         loadingDiv.id = "loading";
         document.getElementById('chatBody').appendChild(loadingDiv);
 
-        // Try to fetch with auto-retry on different models
-        let reply = await tryFetchWithRetry(text);
-        
-        document.getElementById('loading').remove();
-        if(reply) {
+        try {
+            const reply = await fetchGemini(text);
+            document.getElementById('loading').remove();
             addMessageUI("bot", reply);
             chatHistory.push({ role: "model", parts: [{ text: reply }] });
             saveMemory();
-        }
-    }
-
-    // --- ROBUST FETCH WITH MODEL SWITCHING ---
-    async function tryFetchWithRetry(userText) {
-        // We try the current model. If it fails with 404, we move to next.
-        for (let i = 0; i < MODEL_LIST.length; i++) {
-            // Adjust index based on where we are currently pointing + attempt
-            let tryIndex = (currentModelIndex + i) % MODEL_LIST.length;
-            let modelName = MODEL_LIST[tryIndex];
+        } catch (error) {
+            document.getElementById('loading').remove();
             
-            try {
-                const response = await fetchGemini(userText, modelName);
-                // If successful, update currentModelIndex to this working one for future
-                currentModelIndex = tryIndex;
-                document.getElementById('debug-model').innerText = ""; // Clear debug
-                return response;
-            } catch (error) {
-                console.warn(`Model ${modelName} failed:`, error);
-                // Only retry if it looks like a "Not Found" or "Bad Request" error
-                if (error.message.includes("not found") || error.message.includes("404") || error.message.includes("400")) {
-                     document.getElementById('debug-model').innerText = `Trying ${MODEL_LIST[(tryIndex+1)%MODEL_LIST.length]}...`;
-                    continue; // Try next model
-                } else {
-                    addMessageUI("bot", "⚠️ Network/Key Error: " + error.message);
-                    return null; // Stop if it's a key/network issue, not model issue
-                }
-            }
+            // SHOW ERROR ON SCREEN
+            const errBox = document.getElementById('apiError');
+            errBox.style.display = 'block';
+            errBox.innerText = "⚠️ API Error: " + error.message;
+            
+            addMessageUI("bot", "My system is down! Check the red box above. 🔌");
         }
-        addMessageUI("bot", "❌ All models failed. Check your API Key.");
-        return null;
     }
 
-    async function fetchGemini(userText, modelName) {
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${GEMINI_API_KEY}`;
+    async function fetchGemini(userText) {
+        // Standard, robust URL
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
         
         const contents = [
             { role: "user", parts: [{ text: SYSTEM_INSTRUCTION }] },
@@ -497,18 +433,20 @@
             body: JSON.stringify({ contents: contents })
         });
 
+        const data = await response.json();
+
+        // CHECK GOOGLE ERRORS
         if (!response.ok) {
-            const errData = await response.json();
-            throw new Error(errData.error?.message || "API Error");
+            // Throw the actual error message from Google
+            throw new Error(data.error?.message || "Unknown API Error");
         }
 
-        const data = await response.json();
         return data.candidates[0].content.parts[0].text;
     }
 
-    function saveMemory() { localStorage.setItem('karishma_v4', JSON.stringify(chatHistory)); }
+    function saveMemory() { localStorage.setItem('karishma_v5', JSON.stringify(chatHistory)); }
     function loadMemory() {
-        const h = localStorage.getItem('karishma_v4');
+        const h = localStorage.getItem('karishma_v5');
         if(h) {
             chatHistory = JSON.parse(h);
             chatHistory.forEach(msg => {
@@ -516,7 +454,7 @@
             });
         }
     }
-    function clearMemory() { localStorage.removeItem('karishma_v4'); location.reload(); }
+    function clearMemory() { localStorage.removeItem('karishma_v5'); location.reload(); }
 
 </script>
 </body>
