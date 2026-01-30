@@ -3,27 +3,26 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>Karishma: Diagnostic Mode</title>
+<title>Karishma AI</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎀</text></svg>">
 
 <style>
-    /* --- CORE VARIABLES --- */
+    /* --- VARIABLES --- */
     :root {
         --sky-day: linear-gradient(180deg, #4facfe 0%, #00f2fe 100%);
         --sky-night: linear-gradient(180deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
         --robot-main: #ff4081; 
-        --robot-accent: #ff80ab;
-        --chat-bg: #f4f6f9;
+        --chat-bg: #ffffff;
     }
 
     body {
         margin: 0; padding: 0; width: 100%; height: 100%;
         overflow: hidden; background: #000;
-        font-family: 'Segoe UI', system-ui, sans-serif;
-        display: flex; flex-direction: row; 
+        font-family: 'Segoe UI', sans-serif;
+        display: flex; flex-direction: row; /* Desktop: Side-by-Side */
     }
 
-    /* --- LAYOUT SYSTEM --- */
+    /* --- LAYOUT --- */
     #visual-area {
         flex: 1; position: relative; overflow: hidden;
         background: var(--sky-day); transition: background 1.5s ease;
@@ -34,11 +33,11 @@
     #chat-area {
         width: 380px; background: var(--chat-bg); 
         display: flex; flex-direction: column;
-        border-left: 1px solid rgba(0,0,0,0.1); z-index: 100;
+        border-left: 1px solid #ddd; z-index: 100;
         box-shadow: -5px 0 20px rgba(0,0,0,0.1);
     }
 
-    /* MOBILE LAYOUT */
+    /* Mobile Layout (Top/Bottom) */
     @media (max-width: 800px) {
         body { flex-direction: column; }
         #visual-area { height: 55%; flex: none; }
@@ -56,7 +55,7 @@
     }
     #visual-area.night .ground { filter: brightness(0.4); }
 
-    /* Celestial Bodies */
+    /* Celestial Toggle */
     .celestial-toggle {
         position: absolute; top: 20px; right: 20px; width: 60px; height: 60px;
         z-index: 10; cursor: pointer; transition: transform 0.5s;
@@ -68,35 +67,30 @@
     #visual-area.night .moon { display: block; }
     @keyframes spin { 100% { transform: rotate(360deg); } }
 
+    /* Clouds */
+    .cloud { position: absolute; background: #fff; border-radius: 50px; opacity: 0.8; animation: floatCloud 60s linear infinite; z-index: 2; }
+    .c1 { width: 100px; height: 40px; top: 15%; left: -20%; }
+    .c2 { width: 60px; height: 25px; top: 25%; left: -10%; animation-delay: 20s; }
+    @keyframes floatCloud { 0% { left: -20%; } 100% { left: 120%; } }
+    #visual-area.night .cloud { opacity: 0.1; }
+
+    /* Stars */
+    .star { position: absolute; width: 3px; height: 3px; background: #fff; border-radius: 50%; opacity: 0; transition: opacity 1s; }
+    #visual-area.night .star { opacity: 0.9; }
+
     /* House */
-    .house-group {
-        position: absolute; bottom: 10%; left: 8%; z-index: 5;
-        cursor: pointer; transition: transform 0.2s;
-    }
+    .house-group { position: absolute; bottom: 10%; left: 8%; z-index: 5; cursor: pointer; transition: transform 0.2s; }
     .house-group:active { transform: scale(0.95); }
     .house-base { width: 110px; height: 90px; background: #ffccbc; border: 3px solid #4e342e; position: relative; }
-    .roof { 
-        width: 0; height: 0; position: absolute; top: -60px; left: -15px;
-        border-left: 70px solid transparent; border-right: 70px solid transparent; border-bottom: 60px solid #d32f2f;
-    }
+    .roof { width: 0; height: 0; position: absolute; top: -60px; left: -15px; border-left: 70px solid transparent; border-right: 70px solid transparent; border-bottom: 60px solid #d32f2f; }
     .door { width: 35px; height: 50px; background: #5d4037; position: absolute; bottom: 0; left: 38px; border-radius: 20px 20px 0 0; }
     .chimney { width: 20px; height: 35px; background: #4e342e; position: absolute; top: -50px; right: 20px; }
-    .smoke {
-        width: 15px; height: 15px; background: rgba(255,255,255,0.8); border-radius: 50%;
-        position: absolute; top: -60px; right: 22px; opacity: 0; animation: puff 3s infinite;
-    }
+    .smoke { width: 15px; height: 15px; background: rgba(255,255,255,0.8); border-radius: 50%; position: absolute; top: -60px; right: 22px; opacity: 0; animation: puff 3s infinite; }
     @keyframes puff { 0% { transform: translateY(0) scale(1); opacity: 0.8; } 100% { transform: translateY(-40px) scale(2); opacity: 0; } }
 
     /* Signpost */
-    .sign-group {
-        position: absolute; bottom: 10%; right: 8%; z-index: 5;
-        cursor: pointer; transform: rotate(5deg);
-    }
-    .board { 
-        background: #ffa726; border: 3px solid #e65100; padding: 5px; 
-        font-size: 11px; font-weight: bold; text-align: center; border-radius: 4px;
-        color: #bf360c; box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
-    }
+    .sign-group { position: absolute; bottom: 10%; right: 8%; z-index: 5; cursor: pointer; transform: rotate(5deg); }
+    .board { background: #ffa726; border: 3px solid #e65100; padding: 5px; font-size: 11px; font-weight: bold; text-align: center; border-radius: 4px; color: #bf360c; box-shadow: 2px 2px 5px rgba(0,0,0,0.2); }
     .pole { width: 6px; height: 50px; background: #5d4037; margin: 0 auto; }
 
     /* --- KARISHMA ROBOT --- */
@@ -109,31 +103,14 @@
     .part-click { cursor: pointer; transition: 0.1s; }
     .part-click:active { filter: brightness(1.2); transform: scale(0.95); }
 
-    .r-head {
-        width: 110px; height: 90px; background: var(--robot-main);
-        border-radius: 35px; border: 5px solid #fff; position: relative;
-        box-shadow: 0 5px 20px rgba(0,0,0,0.2); z-index: 2;
-    }
+    .r-head { width: 110px; height: 90px; background: var(--robot-main); border-radius: 35px; border: 5px solid #fff; position: relative; box-shadow: 0 5px 20px rgba(0,0,0,0.2); z-index: 2; }
     .bow { position: absolute; top: -25px; right: -5px; font-size: 40px; filter: drop-shadow(2px 2px 0 rgba(0,0,0,0.2)); }
-    .r-face {
-        display: flex; justify-content: space-around; align-items: center;
-        height: 100%; padding: 0 20px; box-sizing: border-box;
-    }
-    .r-eye { 
-        width: 14px; height: 24px; background: #00e5ff; border-radius: 10px; 
-        animation: blink 4s infinite; box-shadow: 0 0 10px #00e5ff;
-    }
+    .r-face { display: flex; justify-content: space-around; align-items: center; height: 100%; padding: 0 20px; box-sizing: border-box; }
+    .r-eye { width: 14px; height: 24px; background: #00e5ff; border-radius: 10px; animation: blink 4s infinite; box-shadow: 0 0 10px #00e5ff; }
     @keyframes blink { 0%,48%,52%,100%{height:24px;} 50%{height:2px;} }
-    .r-body {
-        width: 75px; height: 85px; background: var(--robot-main);
-        border-radius: 25px; margin-top: -15px; border: 5px solid #fff;
-        z-index: 1; display: flex; justify-content: center; align-items: center;
-    }
+    .r-body { width: 75px; height: 85px; background: var(--robot-main); border-radius: 25px; margin-top: -15px; border: 5px solid #fff; z-index: 1; display: flex; justify-content: center; align-items: center; }
     .r-heart { font-size: 35px; color: #fff; text-shadow: 0 2px 5px rgba(0,0,0,0.2); }
-    .r-arm {
-        width: 20px; height: 60px; background: var(--robot-accent);
-        border: 4px solid #fff; border-radius: 10px; position: absolute; top: 90px;
-    }
+    .r-arm { width: 20px; height: 60px; background: #ff80ab; border: 4px solid #fff; border-radius: 10px; position: absolute; top: 90px; }
     .r-arm.left { left: -25px; transform: rotate(25deg); }
     .r-arm.right { right: -25px; transform: rotate(-25deg); }
     .dance { animation: danceMove 0.6s infinite; }
@@ -145,53 +122,35 @@
         font-weight: bold; font-size: 16px; border-bottom: 1px solid #eee;
         display: flex; justify-content: space-between; align-items: center;
     }
+    .status-badge { font-size: 10px; background: #e8f5e9; color: #2e7d32; padding: 4px 8px; border-radius: 10px; border: 1px solid #c8e6c9; }
+    .status-badge.error { background: #ffebee; color: #c62828; border-color: #ffcdd2; }
+
     .chat-history {
         flex: 1; overflow-y: auto; padding: 20px;
         display: flex; flex-direction: column; gap: 15px;
     }
-    .msg {
-        padding: 12px 16px; border-radius: 18px; font-size: 14px; max-width: 85%;
-        line-height: 1.5; animation: pop 0.3s ease; box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-    }
+    .msg { padding: 12px 16px; border-radius: 18px; font-size: 14px; max-width: 85%; line-height: 1.5; animation: pop 0.3s ease; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
     @keyframes pop { from{transform:scale(0.8); opacity:0;} to{transform:scale(1); opacity:1;} }
     .u-msg { align-self: flex-end; background: var(--robot-main); color: #fff; border-bottom-right-radius: 2px; }
     .b-msg { align-self: flex-start; background: #fff; color: #333; border-bottom-left-radius: 2px; border: 1px solid #eee; }
 
-    .input-area {
-        padding: 15px; background: #fff; border-top: 1px solid #eee;
-        display: flex; gap: 10px; align-items: center;
-    }
-    input { 
-        flex: 1; padding: 12px 15px; border-radius: 25px; border: 1px solid #ddd; 
-        font-size: 15px; outline: none; transition: border 0.3s;
-    }
+    .input-area { padding: 15px; background: #fff; border-top: 1px solid #eee; display: flex; gap: 10px; align-items: center; }
+    input { flex: 1; padding: 12px 15px; border-radius: 25px; border: 1px solid #ddd; font-size: 15px; outline: none; transition: border 0.3s; }
     input:focus { border-color: var(--robot-main); }
-    button {
-        background: var(--robot-main); color: white; border: none;
-        width: 45px; height: 45px; border-radius: 50%; 
-        font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center;
-        box-shadow: 0 4px 10px rgba(255, 64, 129, 0.3); transition: transform 0.2s;
-    }
+    button { background: var(--robot-main); color: white; border: none; width: 45px; height: 45px; border-radius: 50%; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(255, 64, 129, 0.3); transition: transform 0.2s; }
     button:active { transform: scale(0.9); }
-
-    /* DIAGNOSTIC ERROR BAR */
-    #diag-box {
-        position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
-        background: #d32f2f; color: #fff; padding: 10px 20px; border-radius: 10px;
-        font-size: 12px; z-index: 500; display: none; width: 80%; text-align: center;
-        border: 2px solid white; box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-    }
 </style>
 </head>
 <body>
 
 <div id="visual-area">
-    <div id="diag-box"></div>
-    
     <div class="celestial-toggle" onclick="toggleTime()">
         <div class="sun"></div>
         <div class="moon"></div>
     </div>
+    
+    <div class="cloud c1"></div><div class="cloud c2"></div>
+    <div id="star-container"></div>
     
     <svg class="mountains-svg" viewBox="0 0 1000 300" preserveAspectRatio="none">
         <path d="M0,300 L250,100 L500,300 L750,50 L1000,300 Z" fill="#9c27b0" opacity="0.6"></path>
@@ -222,7 +181,7 @@
 <div id="chat-area">
     <div class="chat-header">
         <div>Karishma AI</div>
-        <span style="font-size:14px; cursor:pointer;" onclick="location.reload()">🔄</span>
+        <span class="status-badge" id="status-badge">● Live</span>
     </div>
     <div class="chat-history" id="chatList"></div>
     <div class="input-area">
@@ -232,27 +191,35 @@
 </div>
 
 <script>
-    // YOUR API KEY
+    // --- YOUR API KEY ---
     const API_KEY = "AIzaSyDqcavif5UfWGLY1w7YCmR-Oi2Anz9GloU"; 
-    
-    // MODEL LIST (Will try one by one)
     const MODELS = ["gemini-1.5-flash", "gemini-1.5-pro", "gemini-pro"];
-    
     const SYSTEM = "You are Karishma, a sassy and cute robot. Creator: Abhik Dutta. Keep answers short (max 20 words) and fun. Use emojis.";
+    
     let history = [];
 
     window.onload = function() {
         const h = new Date().getHours();
         if(h >= 18 || h < 6) toggleTime(true);
-        addMsg('bot', "Namaste! Connecting to Abhik's server... 🎀");
-        // Test connection immediately
-        callAI("Hello, say Namaste!", true); 
+        generateStars();
+        addMsg('bot', "Namaste! I am online on GitHub! 🎀");
     };
 
     function toggleTime(forceNight) {
         const area = document.getElementById('visual-area');
         if (forceNight || !area.classList.contains('night')) area.classList.add('night');
         else area.classList.remove('night');
+    }
+
+    function generateStars() {
+        const cont = document.getElementById('star-container');
+        for(let i=0; i<30; i++){
+            let s = document.createElement('div');
+            s.className='star';
+            s.style.left = Math.random()*100 + '%';
+            s.style.top = Math.random()*50 + '%';
+            cont.appendChild(s);
+        }
     }
 
     function interact(type) {
@@ -283,13 +250,15 @@
         const inp = document.getElementById('inp');
         const txt = inp.value.trim();
         if(!txt) return;
+        
         addMsg('user', txt);
         inp.value = '';
         callAI(txt, false);
     }
 
-    // --- DIAGNOSTIC API CALL ---
     async function callAI(text, isHidden) {
+        const badge = document.getElementById('status-badge');
+        badge.innerText = "Thinking...";
         if(!isHidden) addMsg('bot', "...");
 
         let msgs = [...history];
@@ -305,9 +274,7 @@
 
         let success = false;
         let reply = "";
-        let errorMsg = "";
 
-        // Loop through models
         for (let model of MODELS) {
             try {
                 const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${API_KEY}`;
@@ -319,41 +286,31 @@
                 
                 const data = await res.json();
                 
-                if (!res.ok) {
-                    // CAPTURE THE REAL ERROR
-                    errorMsg = data.error?.message || res.statusText;
-                    console.log(`Model ${model} failed: ${errorMsg}`);
-                    continue; // Try next model
-                }
-
-                if (data.candidates) {
+                if (res.ok && data.candidates) {
                     reply = data.candidates[0].content.parts[0].text;
                     success = true;
-                    break; // Success!
+                    break;
+                } else {
+                    console.warn(data);
                 }
-            } catch (e) { 
-                errorMsg = e.message;
-            }
+            } catch (e) { console.log("Retry..."); }
         }
 
+        badge.innerText = "● Live";
+        
         if(!isHidden) {
             const list = document.getElementById('chatList');
-            list.removeChild(list.lastChild); // Remove "..."
+            if(list.lastChild.innerText === "...") list.removeChild(list.lastChild);
         }
 
         if (success) {
-            if(isHidden && text.includes("Hello, say Namaste")) addMsg('bot', "Connected! Ask me anything! ✨");
-            else {
-                addMsg('bot', reply);
-                if(!isHidden) history.push({role: "model", parts: [{text: reply}]});
-            }
-            document.getElementById('diag-box').style.display = 'none';
+            addMsg('bot', reply);
+            if(!isHidden) history.push({role: "model", parts: [{text: reply}]});
+            badge.className = "status-badge";
         } else {
-            // DISPLAY THE REAL ERROR
-            const diag = document.getElementById('diag-box');
-            diag.style.display = 'block';
-            diag.innerHTML = `<strong>CONNECTION FAILED</strong><br>Google Error: ${errorMsg}<br><br><em>(Hint: Go to Google Cloud Console > Select Project > Enable 'Generative Language API')</em>`;
-            addMsg('bot', "❌ I cannot connect. Read the red box above.");
+            addMsg('bot', "⚠️ Connection Error. (Check Google Cloud Console 'Referrers')");
+            badge.innerText = "Offline";
+            badge.className = "status-badge error";
         }
     }
 </script>
