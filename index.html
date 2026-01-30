@@ -3,11 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Karishma AI: Auto-Fix</title>
+<title>Karishma AI: Universal</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎀</text></svg>">
 
 <style>
-    /* --- VARIABLES --- */
+    /* --- VISUALS --- */
     :root { --sky-day: linear-gradient(180deg,#4facfe,#00f2fe); --sky-night: linear-gradient(180deg,#0f2027,#203a43,#2c5364); --robot-main:#ff4081; --chat-bg:#ffffff; }
     * { box-sizing: border-box; }
     body { margin: 0; padding: 0; width: 100vw; height: 100vh; overflow: hidden; background: #000; font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: row; }
@@ -18,7 +18,7 @@
     #chat-area { width: 380px; background: var(--chat-bg); display: flex; flex-direction: column; border-left: 1px solid #ddd; z-index: 100; box-shadow: -5px 0 20px rgba(0,0,0,0.15); }
     @media (max-width: 800px) { body { flex-direction: column; } #visual-area { height: 55%; flex: none; } #chat-area { width: 100%; flex: 1; border-left: none; border-top: 1px solid #ddd; } }
 
-    /* --- SCENE OBJECTS --- */
+    /* --- SCENE --- */
     .mountains-svg { position: absolute; bottom: 0; left: 0; width: 100%; height: auto; pointer-events: none; z-index: 2; opacity: 0.8; filter: drop-shadow(0 0 10px rgba(0,0,0,0.1)); }
     .ground { position: absolute; bottom: 0; width: 100%; height: 12%; background: #76b852; z-index: 3; border-top: 6px solid #6fa148; }
     #visual-area.night .ground { filter: brightness(0.4); }
@@ -33,6 +33,7 @@
     .firefly { position: absolute; width: 5px; height: 5px; background: #fff; border-radius: 50%; opacity: 0; animation: glow 4s infinite; pointer-events: none; z-index: 6; }
     @keyframes glow { 0%,100% { opacity:0; } 50% { opacity:1; } }
 
+    /* SCENE ITEMS */
     .tree { position: absolute; bottom: 10%; z-index: 4; cursor: pointer; transition: 0.2s; }
     .tree:active { transform: scale(0.95); }
     .trunk { width: 15px; height: 60px; background: #5d4037; margin: 0 auto; border-radius: 2px; }
@@ -67,7 +68,7 @@
     .dance { animation: danceMove 0.6s infinite; }
     @keyframes danceMove { 0%,100%{transform:translateX(-50%) rotate(0);} 25%{transform:translateX(-50%) rotate(-8deg);} 75%{transform:translateX(-50%) rotate(8deg);} }
 
-    /* --- CHAT UI --- */
+    /* --- CHAT --- */
     .chat-header { padding: 15px; background: #fff; font-weight: bold; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
     .status-badge { font-size: 11px; padding: 4px 10px; border-radius: 20px; background: #e8f5e9; color: #2e7d32; }
     .chat-history { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 12px; }
@@ -86,13 +87,10 @@
     <div class="celestial-toggle" onclick="toggleTime()"><div class="sun"></div><div class="moon"></div></div>
     <svg class="mountains-svg" viewBox="0 0 1000 300" preserveAspectRatio="none"><path d="M0,300 L250,100 L500,300 L750,50 L1000,300 Z" fill="#9c27b0" opacity="0.6"></path><path d="M-100,300 L200,180 L400,300 L600,150 L900,300 Z" fill="#673ab7" opacity="0.4"></path></svg>
     <div class="ground"></div>
-    
     <div class="tree" style="left:5%" onclick="interact('tree')"><div class="leaves"></div><div class="trunk"></div></div>
     <div class="tree" style="right:5%" onclick="interact('tree')"><div class="leaves"></div><div class="trunk"></div></div>
-    
     <div class="house-group" onclick="interact('house')"><div class="roof"></div><div class="chimney"></div><div class="smoke"></div><div class="house-base"><div class="door"></div></div></div>
     <div class="sign-group" onclick="interact('sign')"><div class="board">Code By<br>Abhik</div><div class="pole"></div></div>
-
     <div class="robot-wrapper" id="karishma">
         <div class="r-head" onclick="interact('head')"><div class="bow">🎀</div><div class="r-eyes"><div class="r-eye"></div><div class="r-eye"></div></div></div>
         <div class="r-body" onclick="interact('tummy')"><div class="r-heart">❤️</div></div>
@@ -105,22 +103,16 @@
         <div>Karishma AI</div><div class="status-badge" id="status">● Ready</div>
     </div>
     <div class="chat-history" id="chat"></div>
-    <div class="input-area"><input id="inp" placeholder="Type Hi to start..." onkeypress="if(event.key==='Enter')send()"><button onclick="send()">➤</button></div>
+    <div class="input-area"><input id="inp" placeholder="Type Hi..." onkeypress="if(event.key==='Enter')send()"><button onclick="send()">➤</button></div>
 </div>
 
 <script>
-    // --- CONFIG ---
-    const API_KEY = "AIzaSyDqcavif5UfWGLY1w7YCmR-Oi2Anz9GloU";
+    // --- API CONFIGURATION ---
+    const API_KEY = "sk-abcdef1234567890abcdef1234567890abcdef12"; // Your updated key
     
-    // --- SELF-CORRECTING MODEL LIST ---
-    // If one fails, the code automatically tries the next one.
-    // This fixes "Model Not Found" errors permanently.
-    const MODELS = [
-        "gemini-1.5-flash-001", 
-        "gemini-1.5-flash",
-        "gemini-1.5-pro",
-        "gemini-1.5-pro-001"
-    ];
+    // --- DUAL MODE SYSTEM ---
+    const IS_GEMINI = API_KEY.startsWith("AIza");
+    const MODEL_NAME = IS_GEMINI ? "gemini-1.5-flash" : "gpt-3.5-turbo"; 
     
     const SYSTEM_PROMPT = `You are Karishma AI. Creator: Abhik Dutta.
     Personality: Cute, sassy, playful robot girl.
@@ -129,7 +121,7 @@
     let history = [];
 
     window.onload = () => {
-        addBot("Namaste! Waiting for you... 🎀");
+        addBot(`Namaste! Mode: ${IS_GEMINI ? "Google Gemini" : "OpenAI/Compatible"} 🎀`);
         const h = new Date().getHours();
         if(h >= 18 || h < 6) toggleTime(true);
         generateFireflies();
@@ -194,51 +186,57 @@
         const status = document.getElementById("status");
         if(!hidden) status.innerText = "Thinking...";
         
-        let msgs = [...history];
-        if(hidden) msgs.push({role: "user", parts: [{text: `[SYSTEM: ${text}]`}]});
-        else {
-            history.push({role: "user", parts: [{text: text}]});
-            msgs = [...history];
-        }
+        let reply = "Error";
 
-        const payload = {
-            contents: [{role: "user", parts: [{text: SYSTEM_PROMPT}]}, ...msgs]
-        };
+        try {
+            // --- GOOGLE GEMINI LOGIC ---
+            if(IS_GEMINI) {
+                let msgs = [...history];
+                if(hidden) msgs.push({role: "user", parts: [{text: `[SYSTEM: ${text}]`}]});
+                else {
+                    history.push({role: "user", parts: [{text: text}]});
+                    msgs = [...history];
+                }
+                const payload = { contents: [{role: "user", parts: [{text: SYSTEM_PROMPT}]}, ...msgs] };
+                
+                const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent?key=${API_KEY}`, {
+                    method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                if(data.candidates) reply = data.candidates[0].content.parts[0].text;
+                else throw new Error(data.error?.message || "Gemini Error");
+            } 
+            
+            // --- OPENAI / GROQ / OTHER LOGIC ---
+            else {
+                // OpenAI Structure
+                let messages = [{role: "system", content: SYSTEM_PROMPT}];
+                // Convert Gemini history format to OpenAI format
+                history.forEach(h => messages.push({role: h.role === "model" ? "assistant" : "user", content: h.parts[0].text}));
+                messages.push({role: "user", content: text});
 
-        let reply = null;
-
-        // --- SHOTGUN MODE: Try every model until one works ---
-        for (let m of MODELS) {
-            try {
-                // Using v1beta as it covers the most models
-                const url = `https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent?key=${API_KEY}`;
+                // Default to OpenAI, but user can change URL for Groq/Deepseek here
+                const url = "https://api.openai.com/v1/chat/completions"; 
+                
                 const res = await fetch(url, {
                     method: "POST",
-                    headers: {"Content-Type": "application/json"},
-                    body: JSON.stringify(payload)
+                    headers: { "Content-Type": "application/json", "Authorization": `Bearer ${API_KEY}` },
+                    body: JSON.stringify({ model: "gpt-3.5-turbo", messages: messages })
                 });
-                
                 const data = await res.json();
-                
-                // If successful, stop the loop and use this reply
-                if (data.candidates) {
-                    reply = data.candidates[0].content.parts[0].text;
-                    status.innerText = "● Live";
-                    break; 
-                }
-            } catch(e) {
-                // Silently fail and try the next model
-                console.log(`Model ${m} failed, trying next...`);
+                if(data.choices) reply = data.choices[0].message.content;
+                else throw new Error(data.error?.message || "API Error");
             }
-        }
 
-        if(reply) {
-            if(!hidden || !text.includes("Hello")) addBot(reply);
-            if(!hidden) history.push({role: "model", parts: [{text: reply}]});
-        } else {
+            // Success handling
+            status.innerText = "● Live";
+            if(!hidden || !text.includes("Hi")) addBot(reply);
+            if(!hidden) history.push({role: IS_GEMINI ? "model" : "assistant", parts: [{text: reply}]});
+
+        } catch(e) {
+            console.log(e);
             status.innerText = "Error";
-            // Gentle error message without scary codes
-            addBot("⚠️ System is busy or upgrading. Please try again in 1 minute.");
+            addBot(`⚠️ Connection Failed. Key: ${API_KEY.substring(0,6)}...`);
         }
     }
 </script>
