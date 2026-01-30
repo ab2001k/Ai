@@ -3,25 +3,23 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Bella: The Sassy Garden Bot</title>
+<title>Karishma: The Smart Garden Bot</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎀</text></svg>">
 
 <style>
-    /* --- 3. VIBRANT COLORS --- */
     :root {
-        --sky-top: #4CC9F0;       /* Vibrant Blue */
-        --sky-bot: #4361EE;       /* Deep Blue */
-        --grass: #70E000;         /* Neon Green */
-        --grass-dark: #38B000;    /* Rich Green */
-        --robot-color: #FF006E;   /* Hot Pink */
-        --robot-accent: #FFBE0B;  /* Golden Yellow */
-        --bubble-bg: #FFFFFF;
+        --sky-top: #4CC9F0;
+        --sky-bot: #4361EE;
+        --grass: #70E000;
+        --grass-dark: #38B000;
+        --robot-color: #FF006E;
+        --robot-accent: #FFBE0B;
     }
 
     body, html {
         margin: 0; padding: 0; width: 100%; height: 100%;
         overflow: hidden;
-        font-family: 'Comic Sans MS', 'Chalkboard SE', sans-serif; /* Comic Font */
+        font-family: 'Comic Sans MS', 'Chalkboard SE', sans-serif;
     }
 
     /* --- SCENERY --- */
@@ -31,17 +29,41 @@
         z-index: 1;
     }
 
-    /* Mountains (More colorful) */
+    /* VIBRANT MOUNTAINS */
     .mountain {
         position: absolute; bottom: 30%; width: 0; height: 0;
         border-left: 150px solid transparent;
         border-right: 150px solid transparent;
-        border-bottom: 250px solid #7209B7; /* Purple Mountains */
-        z-index: 2; opacity: 0.8;
+        z-index: 2; opacity: 0.9;
     }
-    .m-1 { left: 10%; transform: scale(1.2); border-bottom-color: #560BAD; }
-    .m-2 { left: 40%; transform: scale(0.8); border-bottom-color: #3A0CA3; }
-    .m-3 { left: 70%; transform: scale(1.5); border-bottom-color: #480CA8; }
+    .m-1 { left: -5%; transform: scale(1.4); border-bottom: 300px solid #7209B7; } /* Purple */
+    .m-2 { left: 30%; transform: scale(1.1); border-bottom: 250px solid #F72585; } /* Pinkish Red */
+    .m-3 { left: 60%; transform: scale(1.6); border-bottom: 350px solid #3A0CA3; } /* Deep Blue */
+    .m-4 { left: 85%; transform: scale(1.2); border-bottom: 280px solid #4CC9F0; } /* Cyan */
+
+    /* TREES (CSS Shapes) */
+    .tree {
+        position: absolute; bottom: 34%; z-index: 3;
+    }
+    .tree-foliage {
+        width: 0; height: 0;
+        border-left: 25px solid transparent;
+        border-right: 25px solid transparent;
+        border-bottom: 60px solid #004b23;
+        position: relative;
+    }
+    .tree-foliage::after { /* Second layer */
+        content:''; position: absolute;
+        top: 20px; left: -25px;
+        width: 0; height: 0;
+        border-left: 25px solid transparent;
+        border-right: 25px solid transparent;
+        border-bottom: 60px solid #004b23;
+    }
+    .tree-trunk {
+        width: 10px; height: 15px; background: #4f2208;
+        margin: 0 auto;
+    }
 
     /* Ground */
     .ground {
@@ -51,15 +73,23 @@
         border-top: 8px solid #9EF01A;
     }
 
-    /* --- THE ROBOT --- */
-    .robot-container {
-        position: absolute; bottom: 15%; left: 20%; /* Robot is on the LEFT now */
+    /* --- ROBOT & ANIMATIONS --- */
+    .robot-group {
+        position: absolute; bottom: 15%; left: 15%;
         z-index: 10;
         display: flex; flex-direction: column; align-items: center;
-        animation: bounce 2s infinite ease-in-out;
-        cursor: pointer;
+        transition: transform 0.5s ease; /* Smooth transition for emotion changes */
     }
-    @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+
+    /* EMOTION CLASSES (Added via JS) */
+    .robot-group.idle { animation: hover 3s infinite ease-in-out; }
+    .robot-group.dance { animation: dance 1s infinite linear; }
+    .robot-group.sad { filter: hue-rotate(180deg) grayscale(50%); transform: translateY(20px) rotate(-10deg); }
+    .robot-group.laugh { animation: shake 0.2s infinite; }
+    
+    @keyframes hover { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+    @keyframes dance { 0% { transform: translateY(0) rotate(0deg); } 25% { transform: translateY(-20px) rotate(-10deg); } 50% { transform: translateY(0) rotate(0deg); } 75% { transform: translateY(-20px) rotate(10deg); } 100% { transform: translateY(0) rotate(0deg); } }
+    @keyframes shake { 0% { transform: translate(1px, 1px) rotate(0deg); } 50% { transform: translate(-1px, -2px) rotate(-1deg); } 100% { transform: translate(1px, -1px) rotate(1deg); } }
 
     .head {
         width: 90px; height: 80px;
@@ -78,6 +108,7 @@
         width: 20px; height: 10px; background: #FFF;
         border-radius: 0 0 20px 20px; margin: 5px auto;
         border: 2px solid #000;
+        transition: 0.3s;
     }
     .body {
         width: 60px; height: 70px; background: var(--robot-color);
@@ -86,24 +117,41 @@
     }
     .bow { position: absolute; top: -20px; right: -10px; font-size: 40px; }
 
-    /* --- 4. CENTERED COMIC CHAT --- */
+    /* SIGNPOST BANNER */
+    .signpost {
+        position: absolute; bottom: 15%; left: 5%;
+        z-index: 9;
+        transform: rotate(-5deg);
+    }
+    .sign-board {
+        background: #F4A261; border: 3px solid #6D4C41;
+        padding: 10px; border-radius: 5px;
+        color: #3E2723; font-weight: bold; font-size: 12px;
+        text-align: center; width: 100px;
+        box-shadow: 3px 3px 0 rgba(0,0,0,0.3);
+    }
+    .sign-pole {
+        width: 8px; height: 60px; background: #6D4C41;
+        margin: 0 auto;
+    }
+
+    /* --- CHAT UI --- */
     .chat-wrapper {
         position: absolute;
         top: 50%; left: 50%; transform: translate(-50%, -50%);
         width: 400px; height: 500px;
         z-index: 100;
         display: flex; flex-direction: column;
-        pointer-events: none; /* Let clicks pass through to scenery */
+        pointer-events: none; 
     }
 
-    /* Input Area (Visible & Interactive) */
     .chat-input-area {
         pointer-events: auto;
         background: #FFF; padding: 10px;
         border: 4px solid #000; border-radius: 20px;
         display: flex; gap: 10px;
         box-shadow: 8px 8px 0 #000;
-        margin-top: auto; /* Push to bottom of wrapper */
+        margin-top: auto; 
     }
     input {
         flex: 1; border: 2px solid #ddd; padding: 10px; border-radius: 10px;
@@ -116,11 +164,9 @@
     }
     button:hover { transform: scale(1.05); }
 
-    /* --- COMIC BUBBLES --- */
     .chat-body {
         flex: 1; overflow-y: auto; padding: 20px;
         display: flex; flex-direction: column; gap: 15px;
-        /* Hide scrollbar */
         scrollbar-width: none; 
     }
     
@@ -132,14 +178,12 @@
         color: #000;
     }
 
-    /* User Bubble (Standard) */
     .msg-user {
         align-self: flex-end;
         background: #FFBE0B;
         border: 3px solid #000; border-radius: 20px 20px 0 20px;
     }
 
-    /* Bot: Normal Talk */
     .msg-bot {
         align-self: flex-start;
         background: #FFF;
@@ -147,153 +191,159 @@
         box-shadow: 5px 5px 0 rgba(0,0,0,0.1);
     }
 
-    /* Bot: THOUGHT Bubble (Cloud style) */
-    .msg-bot.thought {
-        background: #E0F7FA;
-        border: 3px dashed #0077B6;
-        border-radius: 30px;
-    }
-    .msg-bot.thought::before { content: '💭'; margin-right: 5px; }
+    /* Callouts */
+    .msg-bot.thought { background: #E0F7FA; border: 3px dashed #0077B6; border-radius: 30px; }
+    .msg-bot.shout { background: #FF0054; color: #FFF; border: 4px solid #590D22; font-weight: 900; }
 
-    /* Bot: STRONG/SHOUT Bubble (Spiky) */
-    .msg-bot.shout {
-        background: #FF0054; color: #FFF;
-        border: 4px solid #590D22;
-        clip-path: polygon(0% 0%, 100% 0%, 100% 75%, 75% 75%, 75% 100%, 50% 75%, 0% 75%); /* Simple spike attempt or just aggressive border */
-        /* Use CSS border trick for jagged edges instead implies complexity, lets stick to bold style */
-        clip-path: none;
-        border-radius: 5px;
-        font-weight: 900; text-transform: uppercase;
-        transform: rotate(-2deg);
-    }
-
-    /* --- 5. STATUS INDICATOR --- */
-    .status-bar {
-        position: absolute; top: -40px; left: 50%; transform: translateX(-50%);
-        background: #FFF; padding: 5px 15px; border-radius: 20px;
-        border: 3px solid #000; font-size: 12px; font-weight: bold;
-        display: flex; align-items: center; gap: 8px;
-    }
-    .led { width: 10px; height: 10px; border-radius: 50%; background: #ccc; border: 1px solid #000; }
-    .led.on { background: #00FF00; box-shadow: 0 0 5px #00FF00; }
-    .led.off { background: #FF0000; }
-
-    /* Modal */
-    #api-modal {
-        position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 999;
-        display: flex; justify-content: center; align-items: center;
-    }
-    .modal-box {
-        background: #FFF; padding: 30px; border-radius: 20px; text-align: center;
-        border: 5px solid var(--robot-color); width: 300px;
+    /* Utility */
+    .trash-btn {
+        pointer-events: auto;
+        position: absolute; top: 10px; right: 10px;
+        background: red; color: white; border: 2px solid #000;
+        border-radius: 5px; cursor: pointer; font-size: 10px;
+        padding: 5px;
     }
 
     @keyframes popIn { from { transform: scale(0); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    @keyframes blink { 0%, 48%, 52%, 100% { height: 25px; } 50% { height: 2px; } }
 </style>
 </head>
 <body>
-
-<div id="api-modal">
-    <div class="modal-box">
-        <h2>🎀 Wake Up Bella!</h2>
-        <p>Enter your Google Gemini API Key:</p>
-        <input type="password" id="apiKeyInput" placeholder="API Key" style="width: 90%; padding: 8px; border:2px solid #000; border-radius:5px;">
-        <br><br>
-        <button onclick="startGame()">WAKE UP</button>
-        <p style="font-size: 10px; margin-top: 10px; color:#666;">Leave empty for Demo Mode</p>
-    </div>
-</div>
 
 <div class="scene">
     <div class="mountain m-1"></div>
     <div class="mountain m-2"></div>
     <div class="mountain m-3"></div>
+    <div class="mountain m-4"></div>
     
+    <div class="tree" style="left: 10%; transform: scale(0.8);">
+        <div class="tree-foliage"></div><div class="tree-trunk"></div>
+    </div>
+    <div class="tree" style="left: 25%; transform: scale(1.2);">
+        <div class="tree-foliage"></div><div class="tree-trunk"></div>
+    </div>
+    <div class="tree" style="left: 75%; transform: scale(1.0);">
+        <div class="tree-foliage"></div><div class="tree-trunk"></div>
+    </div>
+    <div class="tree" style="left: 90%; transform: scale(0.9);">
+        <div class="tree-foliage"></div><div class="tree-trunk"></div>
+    </div>
+
     <div class="ground">
         <div style="position: absolute; left: 10%; bottom: 20px; font-size: 40px;">🌸</div>
         <div style="position: absolute; left: 80%; bottom: 40px; font-size: 30px;">🍄</div>
     </div>
 </div>
 
-<div class="robot-container">
+<div class="signpost">
+    <div class="sign-board">Implemented by<br>Abhik Dutta</div>
+    <div class="sign-pole"></div>
+</div>
+
+<div class="robot-group idle" id="robotAnim">
     <div class="head">
         <div class="bow">🎀</div>
         <div class="eyes">
             <div class="eye"></div>
             <div class="eye"></div>
         </div>
-        <div class="mouth"></div>
+        <div class="mouth" id="mouth"></div>
     </div>
     <div class="body"></div>
 </div>
 
 <div class="chat-wrapper">
-    <div class="status-bar">
-        <div id="statusLed" class="led"></div>
-        <span id="statusText">System Offline</span>
-    </div>
-
+    <button class="trash-btn" onclick="clearMemory()">🗑️ Forget Me</button>
+    
     <div class="chat-body" id="chatBody">
-        <div class="message msg-bot">
-            Hi! I'm Bella. I love vibrant colors! 🌈
         </div>
-    </div>
 
     <div class="chat-input-area">
-        <input type="text" id="userInput" placeholder="Say something..." onkeypress="handleEnter(event)">
+        <input type="text" id="userInput" placeholder="Talk to Karishma..." onkeypress="handleEnter(event)">
         <button onclick="sendMessage()">SEND</button>
     </div>
 </div>
 
 <script>
-    /* --- 1. SYSTEM INSTRUCTION SETTING --- */
-    // Edit this to change her personality!
-    // We also instruct her on how to trigger styles using T: (Thought) and S: (Shout)
-    const SYSTEM_INSTRUCTION = `
-    You are Bella, a cute, sassy, vibrant robot girl in a garden. 
-    You are full of energy and use emojis.
+    // --- CONFIGURATION ---
     
-    IMPORTANT FORMATTING RULES:
-    1. If you are thinking to yourself (internal monologue), start the sentence with "T: "
-    2. If you are shouting, angry, or very excited, start the sentence with "S: "
-    3. Otherwise, just speak normally.
+    // 1. Paste your Key here to share with family without typing it every time
+    //    If you leave this empty, it will ask for a key or use Demo Mode.
+    const PRE_FILLED_API_KEY = "AIzaSyDsJ6q9Q_jjFUkdJx-xftstOdNH0-k9ipc"; 
+
+    // Karishma's Personality
+    const SYSTEM_INSTRUCTION = `
+    You are Karishma, a smart, sassy, and emotional Indian robot girl.
+    
+    RESPONSE FORMAT RULES:
+    1. Thoughts: Start with "T: "
+    2. Shouts/Excitement: Start with "S: "
+    3. Emotions: You MUST include an emotion tag at the start if relevant:
+       [DANCE] - If you are very happy or celebrating.
+       [SAD] - If the topic is sad or you are sorry.
+       [LAUGH] - If you are joking or laughing.
+       [IDLE] - Normal conversation.
     
     Example:
-    User: Do you like rain?
-    Response: T: My circuits hate water... S: NO WAY! I will rust! ☔️
+    User: Do you like music?
+    Karishma: [DANCE] S: I LOVE BOLLYWOOD MUSIC! 🎵
+    
+    User: My cat died.
+    Karishma: [SAD] Oh no... I am so sorry to hear that.
     `;
 
-    let apiKey = "";
-    let isDemoMode = false;
-
-    function startGame() {
-        const input = document.getElementById('apiKeyInput').value;
-        const led = document.getElementById('statusLed');
-        const statusText = document.getElementById('statusText');
-
-        if (input.trim() === "") {
-            isDemoMode = true;
-            statusText.innerText = "Demo Mode";
-            led.className = "led on"; 
-            led.style.background = "orange";
-        } else {
-            apiKey = input.trim();
-            statusText.innerText = "Online (Smart)";
-            led.className = "led on";
+    // --- VARIABLES ---
+    let apiKey = PRE_FILLED_API_KEY;
+    let chatHistory = []; // Stores conversation context for AI
+    
+    // --- INITIALIZATION ---
+    window.onload = function() {
+        loadMemory();
+        if(chatHistory.length === 0) {
+            // Intro message if new
+            addMessage("bot", "Namaste! I am Karishma. Implemented by Abhik! 🙏", "normal");
         }
-        document.getElementById('api-modal').style.display = 'none';
-    }
+    };
 
     function handleEnter(e) { if(e.key === 'Enter') sendMessage(); }
 
-    function addMessage(sender, text, style = "normal") {
+    // --- MEMORY SYSTEM (Local Storage) ---
+    function loadMemory() {
+        const saved = localStorage.getItem('karishma_chat_history');
+        if (saved) {
+            chatHistory = JSON.parse(saved);
+            // Re-render UI
+            chatHistory.forEach(msg => {
+                // We only render user/model text, ignoring system prompt
+                if(msg.role === "user") addMessageUI("user", msg.parts[0].text);
+                if(msg.role === "model") {
+                    // We need to re-parse the emotion/style tags slightly to render correctly
+                    // For simplicity in history reload, we just render text. 
+                    // To make it perfect, we'd need to save the 'style' separately.
+                    // Here we just clean the tags for display.
+                    let cleanText = msg.parts[0].text.replace(/\[.*?\]/g, '').replace(/^[TS]:/, '');
+                    addMessageUI("bot", cleanText, "normal");
+                }
+            });
+        }
+    }
+
+    function saveMemory() {
+        // Save the history array to browser
+        localStorage.setItem('karishma_chat_history', JSON.stringify(chatHistory));
+    }
+
+    function clearMemory() {
+        localStorage.removeItem('karishma_chat_history');
+        location.reload();
+    }
+
+    // --- UI LOGIC ---
+    function addMessageUI(sender, text, style = "normal") {
         const chatBody = document.getElementById('chatBody');
         const div = document.createElement('div');
-        
-        // Base class
         div.className = `message msg-${sender}`;
         
-        // Apply special styles (Thought / Shout)
         if (sender === 'bot') {
             if (style === 'thought') div.classList.add('thought');
             if (style === 'shout') div.classList.add('shout');
@@ -304,66 +354,109 @@
         chatBody.scrollTop = chatBody.scrollHeight;
     }
 
+    function addMessage(sender, text, style) {
+        addMessageUI(sender, text, style);
+        // We don't save to history array here, we do it in sendMessage/fetch to keep roles correct
+    }
+
+    function setEmotion(emotionTag) {
+        const robot = document.getElementById('robotAnim');
+        const mouth = document.getElementById('mouth');
+        
+        // Reset
+        robot.className = "robot-group"; 
+        mouth.style.borderRadius = "0 0 20px 20px"; // Smile
+
+        if(emotionTag.includes("DANCE")) {
+            robot.classList.add("dance");
+        } else if (emotionTag.includes("SAD")) {
+            robot.classList.add("sad");
+            mouth.style.borderRadius = "20px 20px 0 0"; // Frown
+        } else if (emotionTag.includes("LAUGH")) {
+            robot.classList.add("laugh");
+        } else {
+            robot.classList.add("idle");
+        }
+    }
+
+    // --- API INTERACTION ---
     async function sendMessage() {
         const input = document.getElementById('userInput');
         const text = input.value.trim();
         if (!text) return;
 
-        addMessage("user", text);
+        // 1. Add User Message to UI
+        addMessageUI("user", text);
         input.value = "";
 
-        // Show typing
+        // 2. Add to History
+        chatHistory.push({ role: "user", parts: [{ text: text }] });
+        saveMemory();
+
+        // 3. Show Loading
         const loadingDiv = document.createElement('div');
         loadingDiv.className = 'message msg-bot';
         loadingDiv.innerText = "...";
         loadingDiv.id = "loading-msg";
         document.getElementById('chatBody').appendChild(loadingDiv);
 
-        if (isDemoMode) {
-            setTimeout(() => {
-                document.getElementById('loading-msg').remove();
-                addMessage("bot", "I'm in demo mode! I can't really think yet. 🎀");
-            }, 1000);
-        } else {
-            try {
-                // Call API
-                const rawResponse = await fetchGeminiResponse(text);
-                document.getElementById('loading-msg').remove();
-                
-                // Parse the response for T: and S: tags
-                processBotResponse(rawResponse);
+        try {
+            const responseText = await fetchGeminiResponse();
+            document.getElementById('loading-msg').remove();
+            
+            // 4. Parse Response (Emotion & Callouts)
+            processBotResponse(responseText);
 
-            } catch (error) {
-                document.getElementById('loading-msg').remove();
-                addMessage("bot", "Oops! Connection Error. 🔌");
-                document.getElementById('statusLed').className = "led off";
-            }
+            // 5. Add to History
+            chatHistory.push({ role: "model", parts: [{ text: responseText }] });
+            saveMemory();
+
+        } catch (error) {
+            document.getElementById('loading-msg').remove();
+            addMessageUI("bot", "Network Error or API Key Issue! 🔌");
+            console.error(error);
         }
     }
 
-    // --- LOGIC TO SPLIT THOUGHTS vs SHOUTS vs NORMAL ---
     function processBotResponse(response) {
-        // Simple splitter based on our custom tags
-        // This is a basic parser. For advanced use, we'd split by regex.
-        // Here we handle the whole message as one style if it starts with the tag, 
-        // or check simple containment.
-        
-        if (response.startsWith("T:")) {
-            addMessage("bot", response.replace("T:", "").trim(), "thought");
-        } else if (response.startsWith("S:")) {
-            addMessage("bot", response.replace("S:", "").trim(), "shout");
+        // Extract Emotion
+        let emotion = "IDLE";
+        const emotionMatch = response.match(/\[(.*?)\]/);
+        if (emotionMatch) {
+            emotion = emotionMatch[1];
+            setEmotion(emotion);
+            response = response.replace(/\[(.*?)\]/, '').trim(); // Remove tag from text
         } else {
-            addMessage("bot", response, "normal");
+            setEmotion("IDLE");
+        }
+
+        // Check Style
+        if (response.startsWith("T:")) {
+            addMessageUI("bot", response.replace("T:", "").trim(), "thought");
+        } else if (response.startsWith("S:")) {
+            addMessageUI("bot", response.replace("S:", "").trim(), "shout");
+        } else {
+            addMessageUI("bot", response, "normal");
         }
     }
 
-    async function fetchGeminiResponse(userText) {
+    async function fetchGeminiResponse() {
+        if(!apiKey) return "[IDLE] T: I have no API key... S: Please give me a key!";
+
         const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
         
+        // Prepare context with system instruction at the top
+        // Note: Gemini API format for history is specific. 
+        // We prepend the System Prompt as a 'user' message or use the 'system_instruction' field if supported by the specific endpoint version.
+        // For simplicity with this endpoint, we will just prepend the system prompt to the first text sent if history is empty, 
+        // OR we just assume the bot acts on the latest prompt containing the instructions.
+        
+        // Let's format the payload to include history
         const payload = {
-            contents: [{
-                parts: [{ text: SYSTEM_INSTRUCTION + "\n\nUser: " + userText }]
-            }]
+            contents: [
+                { role: "user", parts: [{ text: SYSTEM_INSTRUCTION }] }, // Reinforce persona
+                ...chatHistory // Spread the conversation history
+            ]
         };
 
         const res = await fetch(url, {
