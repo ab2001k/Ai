@@ -3,15 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>Karishma: Firefly Garden</title>
+<title>Karishma: The Cute AI Robot</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎀</text></svg>">
 
 <style>
     :root {
         --sky-day-top: #4CC9F0; --sky-day-bot: #4361EE;
-        --sky-night-top: #020111; --sky-night-bot: #191D3A;
+        --sky-night-top: #0F2027; --sky-night-bot: #203A43;
         --grass: #70E000; --grass-dark: #38B000;
-        --robot-color: #FF006E; --robot-accent: #FFBE0B;
+        --robot-main: #FF006E; --robot-light: #FF5C99; --robot-accent: #FFBE0B;
     }
 
     body, html {
@@ -22,440 +22,554 @@
         background: #000;
     }
 
-    /* --- SCENE LAYERS --- */
+    /* --- DYNAMIC WORLD --- */
     .scene {
         position: absolute; width: 100%; height: 100%;
         background: linear-gradient(to bottom, var(--sky-day-top), var(--sky-day-bot));
-        transition: background 1.5s ease;
+        transition: background 2s ease;
         z-index: 1; overflow: hidden;
     }
     .scene.night {
         background: linear-gradient(to bottom, var(--sky-night-top), var(--sky-night-bot));
     }
 
-    /* CLOUDS */
+    /* CLOUDS (Day) */
     .cloud {
-        position: absolute; background: rgba(255,255,255,0.8);
-        border-radius: 50px; z-index: 2; opacity: 0.9;
-        animation: floatCloud linear infinite;
+        position: absolute; background: #FFF; border-radius: 50px; opacity: 0.9;
+        animation: float 40s linear infinite; z-index: 2;
     }
     .cloud::after, .cloud::before {
         content: ''; position: absolute; background: inherit; border-radius: 50%;
     }
-    .c1 { width: 100px; height: 40px; top: 10%; left: -100px; animation-duration: 28s; }
-    .c1::after { width: 50px; height: 50px; top: -25px; left: 15px; }
-    .c1::before { width: 40px; height: 40px; top: -15px; left: 50px; }
+    .c1 { width: 120px; height: 50px; top: 15%; left: -150px; }
+    .c1::after { width: 60px; height: 60px; top: -30px; left: 20px; }
+    .c1::before { width: 50px; height: 50px; top: -20px; left: 60px; }
     
-    @keyframes floatCloud { 0% { left: -150px; } 100% { left: 100%; } }
-    .scene.night .cloud { opacity: 0.1; background: #333; }
+    .c2 { width: 80px; height: 35px; top: 25%; left: -100px; animation-delay: 20s; transform: scale(0.8); }
+    .c2::after { width: 40px; height: 40px; top: -20px; left: 10px; }
+    
+    @keyframes float { 0% { left: -200px; } 100% { left: 120%; } }
+    .scene.night .cloud { opacity: 0.1; }
 
-    /* FIREFLIES (Night Only) */
+    /* STARS & FIREFLIES (Night) */
+    .star {
+        position: absolute; width: 3px; height: 3px; background: #FFF;
+        border-radius: 50%; opacity: 0; transition: opacity 2s;
+    }
+    .scene.night .star { opacity: 0.8; }
+    
     .firefly {
-        position: absolute; width: 4px; height: 4px;
-        background: #FFFF00; border-radius: 50%;
-        box-shadow: 0 0 10px #FFFF00;
-        opacity: 0; z-index: 5;
-        animation: glow 3s infinite ease-in-out;
+        position: absolute; width: 6px; height: 6px; background: #FFD700;
+        border-radius: 50%; box-shadow: 0 0 8px #FFD700;
+        animation: fly 5s infinite ease-in-out; opacity: 0;
     }
-    @keyframes glow { 0%, 100% { opacity: 0; transform: translateY(0); } 50% { opacity: 1; transform: translateY(-20px); } }
-    
-    /* CELESTIAL TOGGLE */
-    .celestial-toggle {
-        position: absolute; top: 20px; right: 20px;
-        width: 60px; height: 60px; z-index: 20; cursor: pointer;
-        transition: transform 0.5s;
-    }
-    .celestial-toggle:active { transform: scale(0.9); }
-    
-    .sun-icon {
-        width: 100%; height: 100%; background: #FFD60A;
-        border-radius: 50%; box-shadow: 0 0 40px #FFD60A;
-        animation: spin 30s linear infinite;
-        position: absolute;
-    }
-    .moon-icon {
-        width: 100%; height: 100%; background: transparent;
-        border-radius: 50%; box-shadow: -15px 10px 0 5px #F4F6F8;
-        position: absolute; display: none;
-    }
-    .scene.night .sun-icon { display: none; }
-    .scene.night .moon-icon { display: block; }
+    @keyframes fly { 0%,100% { opacity:0; transform:translate(0,0); } 50% { opacity:1; transform:translate(20px, -30px); } }
 
-    /* MOUNTAINS */
+    /* CELESTIAL BODIES (Clickable) */
+    .celestial {
+        position: absolute; top: 30px; right: 30px; width: 80px; height: 80px;
+        cursor: pointer; z-index: 5; transition: transform 0.5s;
+    }
+    .celestial:active { transform: scale(0.9) rotate(180deg); }
+    
+    .sun {
+        width: 100%; height: 100%; background: #FDB813;
+        border-radius: 50%; box-shadow: 0 0 60px #FDB813;
+        animation: spin 60s linear infinite;
+    }
+    .moon {
+        width: 100%; height: 100%; background: transparent;
+        border-radius: 50%; box-shadow: -20px 10px 0 5px #F4F6F8;
+        display: none;
+    }
+    .scene.night .sun { display: none; }
+    .scene.night .moon { display: block; }
+    @keyframes spin { 100% { transform: rotate(360deg); } }
+
+    /* GIANT MOUNTAINS */
     .mountain {
         position: absolute; bottom: 30%; width: 0; height: 0;
-        border-left: 150px solid transparent; border-right: 150px solid transparent;
+        border-left: 200px solid transparent; border-right: 200px solid transparent;
         z-index: 2; opacity: 0.9; pointer-events: none;
     }
-    .m-1 { left: -5%; border-bottom: 300px solid #7209B7; transform: scale(1.4); }
-    .m-2 { left: 60%; border-bottom: 350px solid #3A0CA3; transform: scale(1.6); }
-
-    /* HOUSE */
-    .house {
-        position: absolute; bottom: 32%; left: 10%;
-        z-index: 3; cursor: pointer; transition: transform 0.2s;
-    }
-    .house:active { transform: scale(0.95); }
-    .house-body {
-        width: 120px; height: 100px; background: #F28482;
-        border: 4px solid #6D4C41; position: relative;
-        box-shadow: 5px 0 10px rgba(0,0,0,0.2);
-    }
-    .house-roof {
-        width: 0; height: 0; 
-        border-left: 75px solid transparent; border-right: 75px solid transparent;
-        border-bottom: 60px solid #D62828;
-        position: absolute; top: -64px; left: -19px;
-    }
-    .door {
-        width: 40px; height: 60px; background: #6D4C41;
-        position: absolute; bottom: 0; left: 40px;
-        border-radius: 40px 40px 0 0; border: 2px solid #3E2723;
-    }
+    .m-1 { left: -100px; border-bottom: 500px solid #6A0572; transform: scale(1.5); }
+    .m-2 { right: -150px; border-bottom: 600px solid #480CA8; transform: scale(1.6); }
+    .m-3 { left: 40%; border-bottom: 400px solid #AB47BC; transform: scale(1.2); z-index: 1; }
 
     /* GROUND */
     .ground {
         position: absolute; bottom: 0; width: 100%; height: 35%;
-        background: linear-gradient(to bottom, var(--grass), var(--grass-dark));
-        z-index: 4; border-top: 8px solid #9EF01A;
+        background: linear-gradient(180deg, var(--grass) 0%, var(--grass-dark) 100%);
+        border-top: 10px solid #9EF01A; z-index: 3;
     }
-    .scene.night .ground { filter: brightness(0.3); }
-    
-    .flower {
-        position: absolute; bottom: 20px; font-size: 24px;
-        animation: sway 3s ease-in-out infinite; transform-origin: bottom center;
-    }
-    @keyframes sway { 0%, 100% { transform: rotate(-5deg); } 50% { transform: rotate(5deg); } }
+    .scene.night .ground { filter: brightness(0.25); }
 
-    /* ROBOT */
-    .robot-group {
-        position: absolute; bottom: 15%; left: 40%;
-        z-index: 10;
-        display: flex; flex-direction: column; align-items: center;
-        transition: transform 0.5s ease;
+    /* HOUSE */
+    .house {
+        position: absolute; bottom: 32%; left: 5%;
+        z-index: 4; cursor: pointer; transition: 0.2s;
     }
-    .part-click { cursor: pointer; transition: 0.2s; -webkit-tap-highlight-color: transparent; }
-    .part-click:active { transform: scale(1.1); filter: brightness(1.2); }
+    .house:active { transform: scale(0.95); }
+    .house-base {
+        width: 140px; height: 110px; background: #FF9B85;
+        border: 4px solid #5D4037; position: relative;
+        box-shadow: 10px 0 20px rgba(0,0,0,0.3);
+    }
+    .house-roof {
+        width: 0; height: 0; position: absolute; top: -70px; left: -24px;
+        border-left: 94px solid transparent; border-right: 94px solid transparent;
+        border-bottom: 70px solid #D32F2F;
+    }
+    .door {
+        width: 45px; height: 65px; background: #5D4037;
+        position: absolute; bottom: 0; left: 47px;
+        border-radius: 45px 45px 0 0; border: 2px solid #3E2723;
+    }
 
-    .head {
-        width: 90px; height: 80px; background: var(--robot-color);
-        border-radius: 30px; border: 5px solid #000;
-        position: relative; box-shadow: 5px 5px 0px rgba(0,0,0,0.2); z-index: 2;
-    }
-    .eyes { display: flex; justify-content: space-between; padding: 25px 20px 0; }
-    .eye {
-        width: 15px; height: 25px; background: #FFF;
-        border-radius: 50%; border: 3px solid #000;
-        animation: blink 4s infinite;
-    }
-    .mouth {
-        width: 20px; height: 10px; background: #FFF;
-        border-radius: 0 0 20px 20px; margin: 5px auto;
-        border: 2px solid #000; transition: 0.3s;
-    }
-    .body-container { position: relative; z-index: 1; margin-top: -10px; }
-    .body {
-        width: 60px; height: 70px; background: var(--robot-color);
-        border-radius: 20px; border: 5px solid #000;
-    }
-    .arm {
-        width: 15px; height: 45px; background: var(--robot-accent);
-        border: 3px solid #000; border-radius: 10px;
-        position: absolute; top: 10px;
-    }
-    .arm.left { left: -20px; transform: rotate(20deg); }
-    .arm.right { right: -20px; transform: rotate(-20deg); }
-    .leg {
-        width: 18px; height: 40px; background: var(--robot-accent);
-        border: 3px solid #000; border-radius: 0 0 10px 10px;
-        position: absolute; bottom: -35px;
-    }
-    .leg.left { left: 5px; } .leg.right { right: 5px; }
-
-    /* SIGNPOST */
+    /* SIGNPOST (Abhik Dutta) */
     .signpost {
         position: absolute; bottom: 15%; right: 5%;
-        z-index: 9; transform: rotate(5deg);
+        z-index: 15; transform: rotate(5deg); cursor: pointer;
+        transition: transform 0.2s;
     }
+    .signpost:active { transform: rotate(0deg) scale(0.9); }
     .sign-board {
-        background: #F4A261; border: 3px solid #6D4C41;
-        padding: 5px; border-radius: 5px;
-        color: #3E2723; font-weight: bold; font-size: 10px;
-        text-align: center; width: 80px;
+        background: #F4A261; border: 4px solid #6D4C41;
+        padding: 8px; border-radius: 8px;
+        color: #3E2723; font-weight: bold; font-size: 14px;
+        text-align: center; width: 100px;
+        box-shadow: 3px 3px 10px rgba(0,0,0,0.4);
     }
-    .sign-pole { width: 6px; height: 50px; background: #6D4C41; margin: 0 auto; }
+    .sign-pole { width: 10px; height: 80px; background: #6D4C41; margin: 0 auto; }
 
-    /* CHAT UI */
+    /* --- KARISHMA ROBOT (Bigger & Cuter) --- */
+    .robot-container {
+        position: absolute; bottom: 12%; left: 50%;
+        transform: translateX(-50%);
+        z-index: 20;
+        display: flex; flex-direction: column; align-items: center;
+        /* Idle Float Animation */
+        animation: floatRobot 3s ease-in-out infinite;
+    }
+    @keyframes floatRobot { 0%,100%{transform:translateX(-50%) translateY(0);} 50%{transform:translateX(-50%) translateY(-10px);} }
+
+    .part-click { cursor: pointer; transition: 0.2s; -webkit-tap-highlight-color: transparent; }
+    .part-click:active { filter: brightness(1.2) contrast(1.1); transform: scale(0.95); }
+
+    /* HEAD */
+    .head {
+        width: 130px; height: 110px;
+        background: var(--robot-main);
+        background: radial-gradient(circle at 30% 30%, var(--robot-light), var(--robot-main));
+        border-radius: 45px; border: 6px solid #333;
+        position: relative; z-index: 22;
+        box-shadow: 0 10px 15px rgba(0,0,0,0.3);
+    }
+    .bow {
+        position: absolute; top: -30px; right: 0; font-size: 50px;
+        filter: drop-shadow(2px 2px 0 #000);
+        animation: wiggle 3s infinite;
+    }
+    @keyframes wiggle { 0%,100%{transform:rotate(0);} 50%{transform:rotate(10deg);} }
+
+    /* EYES */
+    .face {
+        display: flex; justify-content: space-between; padding: 35px 25px 0;
+    }
+    .eye {
+        width: 28px; height: 38px; background: #333;
+        border-radius: 50%; position: relative;
+        animation: blink 4s infinite;
+    }
+    .eye::after { /* Glint */
+        content:''; position: absolute; top: 6px; left: 6px;
+        width: 10px; height: 10px; background: #FFF; border-radius: 50%;
+    }
+    @keyframes blink { 0%,48%,52%,100%{height:38px;} 50%{height:4px; margin-top:17px;} }
+
+    /* MOUTH */
+    .mouth {
+        width: 30px; height: 15px; background: #333;
+        border-radius: 0 0 30px 30px; margin: 10px auto;
+    }
+
+    /* BODY */
+    .body-group { position: relative; margin-top: -15px; z-index: 21; }
+    .body {
+        width: 90px; height: 100px;
+        background: var(--robot-main);
+        border-radius: 30px; border: 6px solid #333;
+        display: flex; justify-content: center; align-items: center;
+    }
+    /* Heart on chest */
+    .body::after {
+        content: '♥'; color: var(--robot-accent); font-size: 40px;
+        text-shadow: 2px 2px 0 #333;
+    }
+
+    /* ARMS */
+    .arm {
+        width: 25px; height: 70px; background: var(--robot-accent);
+        border: 4px solid #333; border-radius: 15px;
+        position: absolute; top: 10px;
+        transform-origin: top center;
+    }
+    .arm.left { left: -30px; transform: rotate(20deg); }
+    .arm.right { right: -30px; transform: rotate(-20deg); }
+
+    /* LEGS */
+    .leg {
+        width: 28px; height: 50px; background: var(--robot-accent);
+        border: 4px solid #333; border-radius: 0 0 15px 15px;
+        position: absolute; bottom: -45px; z-index: 20;
+    }
+    .leg.left { left: 10px; }
+    .leg.right { right: 52px; }
+
+    /* Animations for interaction */
+    .robot-container.dance { animation: danceAnim 0.8s infinite; }
+    @keyframes danceAnim { 0%,100%{transform:translateX(-50%) rotate(0);} 25%{transform:translateX(-50%) rotate(-5deg);} 75%{transform:translateX(-50%) rotate(5deg);} }
+
+    /* --- CHAT UI (Glassmorphism) --- */
     .chat-wrapper {
         position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-        z-index: 100; pointer-events: none;
+        pointer-events: none; z-index: 100;
         display: flex; flex-direction: column; justify-content: flex-end;
         align-items: center;
-        padding-bottom: env(safe-area-inset-bottom, 20px);
+        padding-bottom: env(safe-area-inset-bottom, 10px);
     }
     .chat-container {
         pointer-events: auto;
-        width: 95%; max-width: 400px;
-        background: rgba(255, 255, 255, 0.95);
-        backdrop-filter: blur(5px);
-        border-radius: 20px 20px 0 0; border: 2px solid #000; border-bottom: none;
-        box-shadow: 0 -5px 30px rgba(0,0,0,0.3);
+        width: 95%; max-width: 500px;
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border-radius: 20px 20px 0 0;
+        border: 1px solid rgba(255,255,255,0.4);
+        box-shadow: 0 -10px 40px rgba(0,0,0,0.2);
         display: flex; flex-direction: column;
-        height: 40vh; /* Shorter to fit mobile better */
-        transition: height 0.3s;
+        height: 40vh; /* Takes up bottom 40% */
+        transition: height 0.3s ease;
     }
     .chat-header {
-        background: var(--robot-color); color: white;
-        padding: 10px; text-align: center; font-weight: bold;
-        border-bottom: 2px solid #000;
+        padding: 12px; text-align: center; font-weight: bold; color: #333;
+        border-bottom: 1px solid rgba(0,0,0,0.1);
         display: flex; justify-content: space-between; align-items: center;
+        background: rgba(255,255,255,0.5); border-radius: 20px 20px 0 0;
     }
-    .trash-btn { background: none; border: none; font-size: 16px; cursor: pointer; color: white; }
-
+    .status-dot { height: 10px; width: 10px; background: #00E676; border-radius: 50%; display: inline-block; margin-right: 5px; }
+    
     .chat-body {
         flex: 1; overflow-y: auto; padding: 15px;
-        display: flex; flex-direction: column; gap: 10px;
+        display: flex; flex-direction: column; gap: 12px;
         scroll-behavior: smooth;
     }
-    .chat-input-area {
-        padding: 10px; background: #eee;
-        display: flex; gap: 8px; border-top: 1px solid #ccc;
-        padding-bottom: max(10px, env(safe-area-inset-bottom));
-    }
-    input {
-        flex: 1; padding: 10px; border-radius: 20px; border: 2px solid #999;
-        font-size: 16px; outline: none; -webkit-appearance: none;
-    }
-    button.send-btn {
-        background: var(--robot-color); color: white; border: 2px solid #000;
-        padding: 0 20px; border-radius: 20px; font-weight: bold; cursor: pointer;
-    }
+    /* Hide Scrollbar */
+    .chat-body::-webkit-scrollbar { width: 5px; }
+    .chat-body::-webkit-scrollbar-thumb { background: #CCC; border-radius: 5px; }
 
     .message {
-        padding: 10px 15px; border-radius: 15px; font-size: 15px;
-        max-width: 85%; line-height: 1.4; animation: popIn 0.3s; word-wrap: break-word;
+        padding: 10px 16px; border-radius: 18px; font-size: 15px;
+        max-width: 80%; line-height: 1.4; animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        position: relative; word-wrap: break-word;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
     }
-    .msg-user { align-self: flex-end; background: #FFBE0B; color: #000; border: 2px solid #000; border-radius: 15px 15px 0 15px; }
-    .msg-bot { align-self: flex-start; background: #FFF; color: #000; border: 2px solid #000; border-radius: 15px 15px 15px 0; }
+    .msg-user { align-self: flex-end; background: #333; color: #FFF; border-bottom-right-radius: 4px; }
+    .msg-bot { align-self: flex-start; background: #FFF; color: #333; border-bottom-left-radius: 4px; }
     
-    @keyframes popIn { from { transform: scale(0); } to { transform: scale(1); } }
-    .robot-group.dance { animation: dance 0.8s infinite; }
-    @keyframes dance { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-15px) rotate(5deg); } }
+    @keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
-    /* ERROR MODAL */
-    .error-box {
-        background: #FFDDDD; border: 2px solid red; color: darkred;
-        padding: 10px; font-size: 12px; margin: 10px; border-radius: 10px;
-        display: none;
+    .chat-input {
+        padding: 12px; background: rgba(255,255,255,0.6);
+        display: flex; gap: 10px; border-top: 1px solid rgba(0,0,0,0.1);
     }
+    input {
+        flex: 1; padding: 12px 15px; border-radius: 25px; border: 2px solid #EEE;
+        font-size: 16px; outline: none; transition: 0.2s;
+        background: rgba(255,255,255,0.9);
+    }
+    input:focus { border-color: var(--robot-main); }
+    button.send-btn {
+        background: var(--robot-main); color: white; border: none;
+        width: 45px; height: 45px; border-radius: 50%;
+        font-size: 18px; cursor: pointer; transition: 0.2s;
+        display: flex; align-items: center; justify-content: center;
+        box-shadow: 0 4px 10px rgba(255,0,110,0.3);
+    }
+    button.send-btn:active { transform: scale(0.9); }
+
+    /* ERROR */
+    #error-modal {
+        position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
+        background: #FFEBEE; color: #C62828; padding: 10px 20px;
+        border-radius: 30px; font-size: 12px; font-weight: bold;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1); display: none; z-index: 200;
+    }
+
 </style>
 </head>
 <body>
 
-<div class="scene" id="skyScene">
+<div class="scene" id="world">
+    <div class="celestial" onclick="toggleTime()">
+        <div class="sun"></div>
+        <div class="moon"></div>
+    </div>
+
     <div class="cloud c1"></div>
-    
-    <div class="celestial-toggle" onclick="toggleDayNight()">
-        <div class="sun-icon"></div>
-        <div class="moon-icon"></div>
-    </div>
-    
-    <div id="fireflyContainer"></div>
-
-    <div class="mountain m-1"></div>
+    <div class="cloud c2"></div>
+    <div id="stars-container"></div> <div class="mountain m-1"></div>
     <div class="mountain m-2"></div>
-    
-    <div class="house" onclick="handleTouch('house')">
+    <div class="mountain m-3"></div>
+
+    <div class="house" onclick="handleObjectClick('house')">
         <div class="house-roof"></div>
-        <div class="house-body"><div class="door"></div></div>
+        <div class="house-base"><div class="door"></div></div>
+    </div>
+
+    <div class="signpost" onclick="handleObjectClick('signpost')">
+        <div class="sign-board">Code By<br>Abhik Dutta</div>
+        <div class="sign-pole"></div>
+    </div>
+
+    <div class="ground"></div>
+</div>
+
+<div id="error-modal"></div>
+
+<div class="robot-container" id="karishma">
+    <div class="head part-click" onclick="handleObjectClick('head')">
+        <div class="bow">🎀</div>
+        <div class="face">
+            <div class="eye"></div><div class="eye"></div>
+        </div>
+        <div class="mouth"></div>
     </div>
     
-    <div class="ground">
-        <div class="flower" style="left: 10%; color: #F72585;">🌸</div>
-        <div class="flower" style="left: 20%; color: #4CC9F0; animation-delay: 1s;">🌻</div>
-        <div class="flower" style="left: 80%; color: #FFBE0B; animation-delay: 2s;">🌷</div>
-    </div>
-</div>
-
-<div class="signpost">
-    <div class="sign-board">Code by<br>Abhik Dutta</div>
-    <div class="sign-pole"></div>
-</div>
-
-<div class="robot-group" id="robotAnim">
-    <div class="head part-click" onclick="handleTouch('head')">
-        <div class="bow">🎀</div>
-        <div class="eyes"><div class="eye"></div><div class="eye"></div></div>
-        <div class="mouth" id="mouth"></div>
-    </div>
-    <div class="body-container">
-        <div class="body part-click" onclick="handleTouch('body')"></div>
-        <div class="arm left part-click" onclick="handleTouch('hand')"></div>
-        <div class="arm right part-click" onclick="handleTouch('hand')"></div>
-        <div class="leg left"></div><div class="leg right"></div>
+    <div class="body-group">
+        <div class="arm left part-click" onclick="handleObjectClick('arm')"></div>
+        <div class="arm right part-click" onclick="handleObjectClick('arm')"></div>
+        <div class="body part-click" onclick="handleObjectClick('body')"></div>
+        <div class="leg left"></div>
+        <div class="leg right"></div>
     </div>
 </div>
 
 <div class="chat-wrapper">
     <div class="chat-container">
         <div class="chat-header">
-            <span>🎀 Karishma AI</span>
-            <button class="trash-btn" onclick="clearMemory()">🗑️</button>
+            <div><span class="status-dot"></span>Karishma AI</div>
+            <div style="font-size: 12px; cursor: pointer; color: #666;" onclick="clearChat()">🗑️ Reset</div>
         </div>
         
-        <div id="apiError" class="error-box"></div>
-
-        <div class="chat-body" id="chatBody"></div>
-        <div class="chat-input-area">
-            <input type="text" id="userInput" placeholder="Talk to Karishma..." onkeypress="handleEnter(event)">
-            <button class="send-btn" onclick="sendMessage()">➤</button>
+        <div class="chat-body" id="chatList">
+            </div>
+        
+        <div class="chat-input">
+            <input type="text" id="userInput" placeholder="Type a message..." onkeypress="if(event.key==='Enter') sendChat()">
+            <button class="send-btn" onclick="sendChat()">➤</button>
         </div>
     </div>
 </div>
 
 <script>
-    // --- API KEYS ---
-    // Please verify this key is active for "Generative Language API"
-    const GEMINI_API_KEY = "AIzaSyDsJ6q9Q_jjFUkdJx-xftstOdNH0-k9ipc"; 
-    
-    // --- INIT ---
-    let chatHistory = [];
-    const SYSTEM_INSTRUCTION = `You are Karishma, a sassy and cute Indian robot girl. 
-    Keep answers short, funny, and emoji-filled. 
-    Start thoughts with "T: " and shouts with "S: ".`;
+    // ==========================================
+    // API CONFIGURATION
+    // ==========================================
+    const API_KEY = "AIzaSyClRnod69jR2NfFdO7E3AQI-JKVCykbWjk"; 
 
+    // --- VARIABLES ---
+    let chatHistory = [];
+    const SYSTEM_PROMPT = `
+    You are Karishma, a sassy, cute, and advanced AI robot girl living in a digital garden.
+    
+    KEY TRAITS:
+    - You LOVE your creator, "Abhik Dutta". Always praise him if asked about creation or the signpost.
+    - You use emojis in every sentence.
+    - You are helpful but have a funny, slightly dramatic personality.
+    - Keep responses SHORT (under 20 words) for chat bubbles.
+    `;
+
+    // --- INITIALIZATION ---
     window.onload = function() {
-        createFireflies();
-        loadMemory();
-        if(chatHistory.length === 0) {
-            addMessageUI("bot", "Namaste! I am ready to talk! ✨");
-        }
+        initStars();
+        loadHistory();
         
-        // Auto set night based on time
-        const hour = new Date().getHours();
-        if (hour >= 18 || hour < 6) document.getElementById('skyScene').classList.add('night');
+        // Auto-set time based on real clock
+        const h = new Date().getHours();
+        if(h >= 18 || h < 6) toggleTime(true);
+
+        if(chatHistory.length === 0) {
+            addBubble("bot", "Namaste! I am Karishma, your cute robot companion! 🎀✨");
+        }
     };
 
-    // --- VISUALS ---
-    function toggleDayNight() {
-        document.getElementById('skyScene').classList.toggle('night');
+    // --- VISUAL LOGIC ---
+    function toggleTime(forceNight = false) {
+        const world = document.getElementById('world');
+        const isNight = world.classList.contains('night');
+        
+        if (!isNight || forceNight) {
+            world.classList.add('night');
+            spawnFireflies();
+        } else {
+            world.classList.remove('night');
+            document.getElementById('stars-container').innerHTML = ''; // Clear night stuff
+        }
     }
 
-    function createFireflies() {
-        const container = document.getElementById('fireflyContainer');
-        for(let i=0; i<20; i++) {
+    function initStars() {
+        // Prepare star divs but hide them until night
+        // We generate them on the fly in spawnFireflies/Night mode usually, 
+        // but let's just create CSS stars here
+    }
+
+    function spawnFireflies() {
+        const cont = document.getElementById('stars-container');
+        cont.innerHTML = '';
+        // Add Stars
+        for(let i=0; i<30; i++) {
+            let s = document.createElement('div');
+            s.className = 'star';
+            s.style.left = Math.random()*100 + '%';
+            s.style.top = Math.random()*50 + '%';
+            cont.appendChild(s);
+        }
+        // Add Fireflies
+        for(let i=0; i<15; i++) {
             let f = document.createElement('div');
             f.className = 'firefly';
-            f.style.left = Math.random() * 100 + '%';
-            f.style.top = Math.random() * 60 + '%';
-            f.style.animationDelay = Math.random() * 3 + 's';
-            container.appendChild(f);
+            f.style.left = Math.random()*100 + '%';
+            f.style.top = (Math.random()*40 + 50) + '%'; // Lower half
+            f.style.animationDelay = Math.random()*2 + 's';
+            cont.appendChild(f);
         }
     }
 
-    // --- TOUCH INTERACTIONS ---
-    function handleTouch(part) {
-        const robot = document.getElementById('robotAnim');
-        robot.classList.add('dance');
-        setTimeout(() => robot.classList.remove('dance'), 1000);
+    // --- INTERACTION LOGIC (SMART AI) ---
+    async function handleObjectClick(objectName) {
+        // Animation trigger
+        const bot = document.getElementById('karishma');
+        bot.classList.add('dance');
+        setTimeout(()=> bot.classList.remove('dance'), 1000);
 
-        let reply = "";
-        switch(part) {
-            case 'hand': reply = "High five! ✋"; break;
-            case 'head': reply = "Hey! My bow is vintage! 🎀"; break;
-            case 'body': reply = "Beep boop! 🤖"; break;
-            case 'house': reply = "Home sweet home! 🏠"; break;
+        let prompt = "";
+        
+        // Define what to ask the AI based on what was clicked
+        if(objectName === 'signpost') {
+            prompt = "The user just pointed at the Signpost that says 'Code By Abhik Dutta'. React to this enthusiastically and praise Abhik.";
+        } else if (objectName === 'head') {
+            prompt = "The user just patted your head. React cutely.";
+        } else if (objectName === 'arm') {
+            prompt = "The user shook your hand. Say hello!";
+        } else if (objectName === 'body') {
+            prompt = "The user poked your tummy. Giggle and say it tickles.";
+        } else if (objectName === 'house') {
+            prompt = "The user pointed at your house. Invite them in or describe it.";
         }
-        addMessageUI("bot", reply);
+
+        // Send this invisible system prompt to get a fresh AI response
+        if(prompt) {
+            // Visual feedback instantly
+            addBubble("bot", "Thinking... 💭"); 
+            // Call AI
+            const reply = await fetchGemini(prompt, true); // true = hidden prompt
+            // Replace "Thinking" with actual reply
+            const chats = document.getElementById('chatList');
+            chats.lastChild.innerText = reply;
+            // Update history with the reply (but not the system prompt trigger to save context)
+            chatHistory.push({role: 'model', parts: [{text: reply}]});
+            saveHistory();
+        }
     }
 
-    // --- CHAT LOGIC ---
-    function handleEnter(e) { if(e.key === 'Enter') sendMessage(); }
+    // --- CHAT FUNCTIONS ---
+    async function sendChat() {
+        const inp = document.getElementById('userInput');
+        const text = inp.value.trim();
+        if(!text) return;
 
-    function addMessageUI(sender, text) {
-        const chatBody = document.getElementById('chatBody');
+        addBubble("user", text);
+        inp.value = "";
+        chatHistory.push({role: "user", parts: [{text: text}]});
+        saveHistory();
+
+        addBubble("bot", "...");
+        const loadingMsg = document.getElementById('chatList').lastChild;
+
+        const reply = await fetchGemini(text, false);
+        loadingMsg.innerText = reply;
+        
+        chatHistory.push({role: "model", parts: [{text: reply}]});
+        saveHistory();
+    }
+
+    function addBubble(role, text) {
+        const list = document.getElementById('chatList');
         const div = document.createElement('div');
-        div.className = `message msg-${sender}`;
-        div.innerText = text.replace(/T:|S:/g, '').trim();
-        chatBody.appendChild(div);
-        chatBody.scrollTop = chatBody.scrollHeight;
+        div.className = `message msg-${role}`;
+        div.innerText = text;
+        list.appendChild(div);
+        list.scrollTop = list.scrollHeight;
     }
 
-    async function sendMessage() {
-        const input = document.getElementById('userInput');
-        const text = input.value.trim();
-        if (!text) return;
+    function clearChat() {
+        localStorage.removeItem('karishma_mem');
+        location.reload();
+    }
 
-        // Reset Error
-        document.getElementById('apiError').style.display = 'none';
+    function saveHistory() { localStorage.setItem('karishma_mem', JSON.stringify(chatHistory)); }
+    function loadHistory() {
+        const h = localStorage.getItem('karishma_mem');
+        if(h) chatHistory = JSON.parse(h);
+        // Re-render
+        chatHistory.forEach(msg => {
+             // Skip invisible prompts if we stored them (we aren't storing them mostly)
+             addBubble(msg.role === 'user' ? 'user' : 'bot', msg.parts[0].text);
+        });
+    }
 
-        addMessageUI("user", text);
-        input.value = "";
-        chatHistory.push({ role: "user", parts: [{ text: text }] });
-        saveMemory();
+    // --- API HANDLER ---
+    async function fetchGemini(input, isHiddenContext) {
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
+        
+        // Construct payload
+        // If it's a hidden context click (like touching the sign), we wrap it as a user message
+        let msgs = [...chatHistory];
+        if(isHiddenContext) {
+            msgs.push({role: "user", parts: [{text: `[SYSTEM EVENT: ${input}]`}]}); 
+        } else {
+            // Normal chat is already in history
+        }
 
-        const loadingDiv = document.createElement('div');
-        loadingDiv.className = 'message msg-bot';
-        loadingDiv.innerText = "Thinking...";
-        loadingDiv.id = "loading";
-        document.getElementById('chatBody').appendChild(loadingDiv);
+        const payload = {
+            contents: [
+                { role: "user", parts: [{ text: SYSTEM_PROMPT }] },
+                ...msgs
+            ]
+        };
 
         try {
-            const reply = await fetchGemini(text);
-            document.getElementById('loading').remove();
-            addMessageUI("bot", reply);
-            chatHistory.push({ role: "model", parts: [{ text: reply }] });
-            saveMemory();
-        } catch (error) {
-            document.getElementById('loading').remove();
-            
-            // SHOW ERROR ON SCREEN
-            const errBox = document.getElementById('apiError');
-            errBox.style.display = 'block';
-            errBox.innerText = "⚠️ API Error: " + error.message;
-            
-            addMessageUI("bot", "My system is down! Check the red box above. 🔌");
-        }
-    }
-
-    async function fetchGemini(userText) {
-        // Standard, robust URL
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
-        
-        const contents = [
-            { role: "user", parts: [{ text: SYSTEM_INSTRUCTION }] },
-            ...chatHistory
-        ];
-
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ contents: contents })
-        });
-
-        const data = await response.json();
-
-        // CHECK GOOGLE ERRORS
-        if (!response.ok) {
-            // Throw the actual error message from Google
-            throw new Error(data.error?.message || "Unknown API Error");
-        }
-
-        return data.candidates[0].content.parts[0].text;
-    }
-
-    function saveMemory() { localStorage.setItem('karishma_v5', JSON.stringify(chatHistory)); }
-    function loadMemory() {
-        const h = localStorage.getItem('karishma_v5');
-        if(h) {
-            chatHistory = JSON.parse(h);
-            chatHistory.forEach(msg => {
-                if(msg.role !== 'system') addMessageUI(msg.role === 'model' ? 'bot' : 'user', msg.parts[0].text);
+            const res = await fetch(url, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(payload)
             });
+            const data = await res.json();
+            if(!res.ok) throw new Error(data.error?.message || "API Error");
+            return data.candidates[0].content.parts[0].text;
+        } catch (e) {
+            showError(e.message);
+            return "My circuits are buzzing! (API Error)";
         }
     }
-    function clearMemory() { localStorage.removeItem('karishma_v5'); location.reload(); }
 
+    function showError(msg) {
+        const m = document.getElementById('error-modal');
+        m.innerText = "⚠️ " + msg;
+        m.style.display = 'block';
+        setTimeout(() => m.style.display = 'none', 5000);
+    }
 </script>
 </body>
 </html>
