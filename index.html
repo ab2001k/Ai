@@ -3,11 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Karishma AI: Connected</title>
+<title>Karishma AI: Auto-Detect</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎀</text></svg>">
 
 <style>
-    /* --- VARIABLES & RESET --- */
+    /* --- VISUAL VARIABLES --- */
     :root { --sky-day: linear-gradient(180deg,#4facfe,#00f2fe); --sky-night: linear-gradient(180deg,#0f2027,#203a43,#2c5364); --robot-main:#ff4081; --chat-bg:#ffffff; }
     * { box-sizing: border-box; }
     body { margin: 0; padding: 0; width: 100vw; height: 100vh; overflow: hidden; background: #000; font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: row; }
@@ -100,7 +100,7 @@
 
 <div id="chat-area">
     <div class="chat-header">
-        <div>Karishma AI</div><div class="status-badge" id="status">● Connecting...</div>
+        <div>Karishma AI</div><div class="status-badge" id="status">● Init...</div>
     </div>
     <div class="chat-history" id="chat"></div>
     <div class="input-area"><input id="inp" placeholder="Talk to Karishma..." onkeypress="if(event.key==='Enter')send()"><button onclick="send()">➤</button></div>
@@ -110,30 +110,65 @@
     // --- API CONFIG ---
     const API_KEY = "AIzaSyDqcavif5UfWGLY1w7YCmR-Oi2Anz9GloU";
     
-    // THE FIX: We try ALL these names. One of them WILL work.
-    const MODELS = [
-        "gemini-1.5-flash",
-        "gemini-1.5-flash-001",
-        "gemini-1.5-pro",
-        "gemini-1.5-pro-001",
-        "gemini-2.0-flash-exp"
-    ];
-    
+    // VARIABLE TO STORE THE WORKING MODEL
+    let ACTIVE_MODEL = ""; 
+
     const SYSTEM_PROMPT = `You are Karishma AI. Creator: Abhik Dutta.
     Personality: Cute, sassy, playful robot girl.
     Rules: Keep replies short (max 20 words). Use emojis. Love Abhik.`;
 
     let history = [];
 
-    window.onload = () => {
-        addBot("Namaste! Searching for best connection... 🎀");
+    // --- AUTO-DISCOVERY ON LOAD ---
+    window.onload = async () => {
         const h = new Date().getHours();
         if(h >= 18 || h < 6) toggleTime(true);
         generateFireflies();
-        // Warm up connection
-        callAI("System Check", true); 
+        
+        addBot("Scanning for available models... 📡");
+        
+        // 1. ASK GOOGLE: "What models do I have?"
+        await findBestModel();
     };
 
+    async function findBestModel() {
+        const status = document.getElementById("status");
+        try {
+            // Get list of models
+            const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${API_KEY}`);
+            const data = await res.json();
+            
+            if(!res.ok) throw new Error(data.error?.message || "ListModels Failed");
+
+            // 2. Filter for "generateContent" capable models
+            const validModels = data.models.filter(m => 
+                m.supportedGenerationMethods.includes("generateContent")
+            );
+
+            // 3. PRIORITIZE: Look for Flash, then Pro, then anything else
+            let chosen = validModels.find(m => m.name.includes("1.5-flash")) || 
+                         validModels.find(m => m.name.includes("1.5-pro")) ||
+                         validModels.find(m => m.name.includes("gemini-pro")) ||
+                         validModels[0]; // Take the first one if all else fails
+
+            if (chosen) {
+                // IMPORTANT: The name comes back as "models/gemini-1.5-flash", we use it directly
+                ACTIVE_MODEL = chosen.name.replace("models/", ""); 
+                addBot(`✅ Connected! Using model: ${ACTIVE_MODEL}`);
+                status.innerText = "● Live";
+            } else {
+                throw new Error("No chat models found on this key.");
+            }
+
+        } catch (e) {
+            console.error(e);
+            addBot(`❌ API Error: ${e.message}. Please check Google Cloud Console.`);
+            status.innerText = "Error";
+            status.className = "status-badge error";
+        }
+    }
+
+    // --- VISUALS ---
     function toggleTime(forceNight) {
         const v = document.getElementById('visual-area');
         if(forceNight || !v.classList.contains('night')) v.classList.add('night');
@@ -152,6 +187,7 @@
         }
     }
 
+    // --- INTERACTION ---
     function interact(type) {
         const r = document.getElementById("karishma");
         r.classList.add("dance");
@@ -166,6 +202,7 @@
         callAI(t, true);
     }
 
+    // --- CHAT LOGIC ---
     function addUser(t) {
         const d = document.createElement("div");
         d.className = "msg u-msg"; d.innerText = t;
@@ -189,7 +226,13 @@
         callAI(v, false);
     }
 
+    // --- API CALLER ---
     async function callAI(text, hidden) {
+        if(!ACTIVE_MODEL) {
+            if(!hidden) addBot("⚠️ Still connecting to API... please wait.");
+            return;
+        }
+
         const status = document.getElementById("status");
         if(!hidden) status.innerText = "Thinking...";
         
@@ -204,40 +247,27 @@
             contents: [{role: "user", parts: [{text: SYSTEM_PROMPT}]}, ...msgs]
         };
 
-        let reply = null;
-        let lastError = "";
-
-        // TRY EVERY MODEL UNTIL ONE WORKS
-        for(let m of MODELS) {
-            try {
-                // Using v1beta as standard
-                const url = `https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent?key=${API_KEY}`;
-                const res = await fetch(url, {
-                    method: "POST",
-                    headers: {"Content-Type": "application/json"},
-                    body: JSON.stringify(payload)
-                });
-                const data = await res.json();
-                
-                if(data.candidates) {
-                    reply = data.candidates[0].content.parts[0].text;
-                    // It worked! Stop trying other models.
-                    break;
-                } else if(data.error) {
-                    lastError = data.error.message;
-                    console.log(`Model ${m} failed: ${lastError}`);
-                }
-            } catch(e) { lastError = e.message; }
-        }
-
-        if(reply) {
-            status.innerText = "● Live";
-            if(!hidden || !text.includes("System Check")) addBot(reply);
-            if(!hidden) history.push({role: "model", parts: [{text: reply}]});
-        } else {
-            status.innerText = "Error";
-            status.className = "status-badge error";
-            addBot(`⚠️ Connection Failed. Last Google Error: ${lastError}`);
+        try {
+            // Use the model we discovered automatically
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/${ACTIVE_MODEL}:generateContent?key=${API_KEY}`;
+            const res = await fetch(url, {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+            
+            if(data.candidates) {
+                const reply = data.candidates[0].content.parts[0].text;
+                if(!hidden || !text.includes("System")) addBot(reply);
+                if(!hidden) history.push({role: "model", parts: [{text: reply}]});
+                status.innerText = "● Live";
+            } else {
+                addBot("⚠️ Google API Error: " + (data.error?.message || "Unknown"));
+            }
+        } catch(e) { 
+            console.log(e);
+            addBot("⚠️ Network Error");
         }
     }
 </script>
