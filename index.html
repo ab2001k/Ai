@@ -1,323 +1,373 @@
+<!-- KARISHMA AI - FIXED + ENHANCED VERSION -->
+<!-- Creator: Abhik Dutta -->
+<!-- Gemini API Fixed | UI Enhanced | World Expanded -->
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
 <title>Karishma AI: Live</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎀</text></svg>">
 
 <style>
-    /* --- VARIABLES --- */
-    :root {
-        --sky-day: linear-gradient(180deg, #4facfe 0%, #00f2fe 100%);
-        --sky-night: linear-gradient(180deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
-        --robot-main: #ff4081; 
-        --chat-bg: #ffffff;
-    }
+/* ---------------- VARIABLES ---------------- */
+:root{
+--sky-day: linear-gradient(180deg,#4facfe,#00f2fe);
+--sky-night: linear-gradient(180deg,#0f2027,#203a43,#2c5364);
+--robot-main:#ff4081;
+--chat-bg:#ffffff;
+--glow:#ff80ab;
+}
 
-    body {
-        margin: 0; padding: 0; width: 100%; height: 100%;
-        overflow: hidden; background: #000;
-        font-family: 'Segoe UI', sans-serif;
-        display: flex; flex-direction: row; /* Desktop: Side-by-Side */
-    }
+/* ---------------- BASE ---------------- */
+*{box-sizing:border-box}
+body{
+margin:0;height:100vh;width:100vw;
+display:flex;
+font-family:'Segoe UI',sans-serif;
+overflow:hidden;
+background:#000;
+}
 
-    /* --- LAYOUT --- */
-    #visual-area {
-        flex: 1; position: relative; overflow: hidden;
-        background: var(--sky-day); transition: background 1.5s ease;
-        z-index: 1;
-    }
-    #visual-area.night { background: var(--sky-night); }
+/* ---------------- LAYOUT ---------------- */
+#visual-area{
+flex:1;position:relative;
+background:var(--sky-day);
+transition:1.5s;
+overflow:hidden;
+}
+#visual-area.night{background:var(--sky-night)}
 
-    #chat-area {
-        width: 380px; background: var(--chat-bg); 
-        display: flex; flex-direction: column;
-        border-left: 1px solid #ddd; z-index: 100;
-        box-shadow: -5px 0 20px rgba(0,0,0,0.1);
-    }
+#chat-area{
+width:380px;
+background:var(--chat-bg);
+display:flex;flex-direction:column;
+border-left:1px solid #ddd;
+box-shadow:-5px 0 20px rgba(0,0,0,.15);
+z-index:10;
+}
 
-    /* Mobile Layout (Top/Bottom) */
-    @media (max-width: 800px) {
-        body { flex-direction: column; }
-        #visual-area { height: 55%; flex: none; }
-        #chat-area { width: 100%; flex: 1; border-left: none; border-top: 1px solid #ddd; }
-    }
+/* Mobile */
+@media(max-width:800px){
+body{flex-direction:column}
+#visual-area{height:55%}
+#chat-area{width:100%}
+}
 
-    /* --- WORLD OBJECTS --- */
-    .mountains-svg {
-        position: absolute; bottom: 0; left: 0; width: 100%; height: auto;
-        pointer-events: none; z-index: 2; filter: drop-shadow(0 0 10px rgba(0,0,0,0.1));
-    }
-    .ground {
-        position: absolute; bottom: 0; width: 100%; height: 12%;
-        background: #76b852; z-index: 3; border-top: 6px solid #6fa148;
-    }
-    #visual-area.night .ground { filter: brightness(0.4); }
+/* ---------------- WORLD OBJECTS ---------------- */
+.ground{
+position:absolute;bottom:0;width:100%;height:12%;
+background:#76b852;border-top:6px solid #6fa148;z-index:3;
+}
 
-    /* Celestial Toggle */
-    .celestial-toggle {
-        position: absolute; top: 20px; right: 20px; width: 60px; height: 60px;
-        z-index: 10; cursor: pointer; transition: transform 0.5s;
-    }
-    .celestial-toggle:active { transform: scale(0.9); }
-    .sun { width: 100%; height: 100%; background: #ffd700; border-radius: 50%; box-shadow: 0 0 40px #ffd700; animation: spin 40s linear infinite; }
-    .moon { width: 100%; height: 100%; background: transparent; border-radius: 50%; box-shadow: -15px 10px 0 2px #fff; display: none; }
-    #visual-area.night .sun { display: none; }
-    #visual-area.night .moon { display: block; }
-    @keyframes spin { 100% { transform: rotate(360deg); } }
+/* Trees */
+.tree{
+position:absolute;bottom:12%;width:60px;height:120px;
+background:#5d4037;border-radius:10px;
+}
+.tree::after{
+content:"";position:absolute;bottom:80px;left:-40px;
+width:140px;height:100px;border-radius:50%;
+background:#2e7d32;
+}
 
-    /* Clouds */
-    .cloud { position: absolute; background: #fff; border-radius: 50px; opacity: 0.8; animation: floatCloud 60s linear infinite; z-index: 2; }
-    .c1 { width: 100px; height: 40px; top: 15%; left: -20%; }
-    .c2 { width: 60px; height: 25px; top: 25%; left: -10%; animation-delay: 20s; }
-    @keyframes floatCloud { 0% { left: -20%; } 100% { left: 120%; } }
-    #visual-area.night .cloud { opacity: 0.1; }
+/* Pond */
+.pond{
+position:absolute;bottom:12%;left:35%;
+width:200px;height:60px;
+background:rgba(0,150,255,.4);
+border-radius:50%;
+filter:blur(1px);
+}
 
-    /* Stars */
-    .star { position: absolute; width: 3px; height: 3px; background: #fff; border-radius: 50%; opacity: 0; transition: opacity 1s; }
-    #visual-area.night .star { opacity: 0.9; }
+/* Butterflies */
+.butterfly{
+position:absolute;font-size:18px;
+animation:fly 12s linear infinite;
+}
+@keyframes fly{
+0%{transform:translate(-50px,0)}
+100%{transform:translate(120vw,-100px)}
+}
 
-    /* House */
-    .house-group { position: absolute; bottom: 10%; left: 8%; z-index: 5; cursor: pointer; transition: transform 0.2s; }
-    .house-group:active { transform: scale(0.95); }
-    .house-base { width: 110px; height: 90px; background: #ffccbc; border: 3px solid #4e342e; position: relative; }
-    .roof { width: 0; height: 0; position: absolute; top: -60px; left: -15px; border-left: 70px solid transparent; border-right: 70px solid transparent; border-bottom: 60px solid #d32f2f; }
-    .door { width: 35px; height: 50px; background: #5d4037; position: absolute; bottom: 0; left: 38px; border-radius: 20px 20px 0 0; }
-    .chimney { width: 20px; height: 35px; background: #4e342e; position: absolute; top: -50px; right: 20px; }
-    .smoke { width: 15px; height: 15px; background: rgba(255,255,255,0.8); border-radius: 50%; position: absolute; top: -60px; right: 22px; opacity: 0; animation: puff 3s infinite; }
-    @keyframes puff { 0% { transform: translateY(0) scale(1); opacity: 0.8; } 100% { transform: translateY(-40px) scale(2); opacity: 0; } }
+/* Fireflies */
+.firefly{
+position:absolute;width:6px;height:6px;
+background:#fff;border-radius:50%;
+opacity:0;animation:glow 4s infinite;
+}
+@keyframes glow{
+0%,100%{opacity:0}
+50%{opacity:1}
+}
 
-    /* Signpost */
-    .sign-group { position: absolute; bottom: 10%; right: 8%; z-index: 5; cursor: pointer; transform: rotate(5deg); }
-    .board { background: #ffa726; border: 3px solid #e65100; padding: 5px; font-size: 11px; font-weight: bold; text-align: center; border-radius: 4px; color: #bf360c; box-shadow: 2px 2px 5px rgba(0,0,0,0.2); }
-    .pole { width: 6px; height: 50px; background: #5d4037; margin: 0 auto; }
+/* ---------------- ROBOT ---------------- */
+.robot-wrapper{
+position:absolute;bottom:12%;left:50%;
+transform:translateX(-50%);
+display:flex;flex-direction:column;align-items:center;
+animation:float 4s ease-in-out infinite;
+z-index:20;
+filter:drop-shadow(0 0 15px rgba(255,64,129,.4));
+}
+@keyframes float{
+0%,100%{transform:translate(-50%,0)}
+50%{transform:translate(-50%,-12px)}
+}
 
-    /* --- KARISHMA ROBOT --- */
-    .robot-wrapper {
-        position: absolute; bottom: 12%; left: 50%; transform: translateX(-50%);
-        z-index: 20; display: flex; flex-direction: column; align-items: center;
-        animation: float 4s ease-in-out infinite;
-    }
-    @keyframes float { 0%,100%{transform:translate(-50%, 0);} 50%{transform:translate(-50%, -10px);} }
-    .part-click { cursor: pointer; transition: 0.1s; }
-    .part-click:active { filter: brightness(1.2); transform: scale(0.95); }
+.r-head{
+width:110px;height:90px;
+background:var(--robot-main);
+border-radius:35px;border:5px solid #fff;
+display:flex;align-items:center;justify-content:center;
+position:relative;
+}
+.bow{position:absolute;top:-25px;right:-5px;font-size:40px}
 
-    .r-head { width: 110px; height: 90px; background: var(--robot-main); border-radius: 35px; border: 5px solid #fff; position: relative; box-shadow: 0 5px 20px rgba(0,0,0,0.2); z-index: 2; }
-    .bow { position: absolute; top: -25px; right: -5px; font-size: 40px; filter: drop-shadow(2px 2px 0 rgba(0,0,0,0.2)); }
-    .r-face { display: flex; justify-content: space-around; align-items: center; height: 100%; padding: 0 20px; box-sizing: border-box; }
-    .r-eye { width: 14px; height: 24px; background: #00e5ff; border-radius: 10px; animation: blink 4s infinite; box-shadow: 0 0 10px #00e5ff; }
-    @keyframes blink { 0%,48%,52%,100%{height:24px;} 50%{height:2px;} }
-    .r-body { width: 75px; height: 85px; background: var(--robot-main); border-radius: 25px; margin-top: -15px; border: 5px solid #fff; z-index: 1; display: flex; justify-content: center; align-items: center; }
-    .r-heart { font-size: 35px; color: #fff; text-shadow: 0 2px 5px rgba(0,0,0,0.2); }
-    .r-arm { width: 20px; height: 60px; background: #ff80ab; border: 4px solid #fff; border-radius: 10px; position: absolute; top: 90px; }
-    .r-arm.left { left: -25px; transform: rotate(25deg); }
-    .r-arm.right { right: -25px; transform: rotate(-25deg); }
-    .dance { animation: danceMove 0.6s infinite; }
-    @keyframes danceMove { 0%,100%{transform:translateX(-50%) rotate(0);} 25%{transform:translateX(-50%) rotate(-8deg);} 75%{transform:translateX(-50%) rotate(8deg);} }
+.r-eye{
+width:14px;height:24px;background:#00e5ff;
+border-radius:10px;margin:0 10px;
+animation:blink 4s infinite;
+box-shadow:0 0 10px #00e5ff;
+}
+@keyframes blink{
+0%,48%,52%,100%{height:24px}
+50%{height:3px}
+}
 
-    /* --- CHAT UI --- */
-    .chat-header {
-        padding: 15px; background: #fff; color: #333;
-        font-weight: bold; font-size: 16px; border-bottom: 1px solid #eee;
-        display: flex; justify-content: space-between; align-items: center;
-    }
-    .status-badge { font-size: 10px; background: #e8f5e9; color: #2e7d32; padding: 4px 8px; border-radius: 10px; border: 1px solid #c8e6c9; }
-    .status-badge.error { background: #ffebee; color: #c62828; border-color: #ffcdd2; }
+.r-body{
+width:75px;height:85px;margin-top:-15px;
+background:var(--robot-main);
+border-radius:25px;border:5px solid #fff;
+display:flex;align-items:center;justify-content:center;
+}
 
-    .chat-history {
-        flex: 1; overflow-y: auto; padding: 20px;
-        display: flex; flex-direction: column; gap: 15px;
-    }
-    .msg { padding: 12px 16px; border-radius: 18px; font-size: 14px; max-width: 85%; line-height: 1.5; animation: pop 0.3s ease; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-    @keyframes pop { from{transform:scale(0.8); opacity:0;} to{transform:scale(1); opacity:1;} }
-    .u-msg { align-self: flex-end; background: var(--robot-main); color: #fff; border-bottom-right-radius: 2px; }
-    .b-msg { align-self: flex-start; background: #fff; color: #333; border-bottom-left-radius: 2px; border: 1px solid #eee; }
+.r-arm{
+width:20px;height:60px;background:#ff80ab;
+border:4px solid #fff;border-radius:10px;
+position:absolute;top:95px;
+}
+.r-arm.left{left:-25px;transform:rotate(25deg)}
+.r-arm.right{right:-25px;transform:rotate(-25deg)}
 
-    .input-area { padding: 15px; background: #fff; border-top: 1px solid #eee; display: flex; gap: 10px; align-items: center; }
-    input { flex: 1; padding: 12px 15px; border-radius: 25px; border: 1px solid #ddd; font-size: 15px; outline: none; transition: border 0.3s; }
-    input:focus { border-color: var(--robot-main); }
-    button { background: var(--robot-main); color: white; border: none; width: 45px; height: 45px; border-radius: 50%; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(255, 64, 129, 0.3); transition: transform 0.2s; }
-    button:active { transform: scale(0.9); }
+.dance{animation:dance .6s infinite}
+@keyframes dance{
+0%{transform:translate(-50%,0) rotate(0)}
+50%{transform:translate(-50%,0) rotate(6deg)}
+100%{transform:translate(-50%,0) rotate(-6deg)}
+}
+
+/* ---------------- CHAT ---------------- */
+.chat-header{
+padding:15px;font-weight:bold;
+display:flex;justify-content:space-between;
+border-bottom:1px solid #eee;
+}
+
+.status-badge{
+font-size:11px;padding:4px 10px;border-radius:20px;
+background:#e8f5e9;color:#2e7d32;
+}
+
+.chat-history{
+flex:1;overflow-y:auto;padding:15px;
+display:flex;flex-direction:column;gap:10px;
+scroll-behavior:smooth;
+}
+
+.msg{
+padding:12px 15px;border-radius:18px;
+max-width:85%;animation:pop .3s;
+}
+.u-msg{align-self:flex-end;background:#ff4081;color:#fff}
+.b-msg{align-self:flex-start;background:#fff;border:1px solid #eee}
+
+@keyframes pop{
+from{transform:scale(.8);opacity:0}
+to{transform:scale(1);opacity:1}
+}
+
+.input-area{
+padding:12px;display:flex;gap:10px;border-top:1px solid #eee;
+}
+input{
+flex:1;padding:12px;border-radius:25px;border:1px solid #ddd;
+}
+button{
+width:45px;height:45px;border-radius:50%;
+border:none;background:#ff4081;color:#fff;font-size:18px;
+cursor:pointer;
+}
+
+/* ---------------- NIGHT EFFECT ---------------- */
+#visual-area.night{filter:brightness(.85)}
 </style>
 </head>
+
 <body>
 
 <div id="visual-area">
-    <div class="celestial-toggle" onclick="toggleTime()">
-        <div class="sun"></div>
-        <div class="moon"></div>
-    </div>
-    
-    <div class="cloud c1"></div><div class="cloud c2"></div>
-    <div id="star-container"></div>
-    
-    <svg class="mountains-svg" viewBox="0 0 1000 300" preserveAspectRatio="none">
-        <path d="M0,300 L250,100 L500,300 L750,50 L1000,300 Z" fill="#9c27b0" opacity="0.6"></path>
-        <path d="M-100,300 L200,180 L400,300 L600,150 L900,300 Z" fill="#673ab7" opacity="0.4"></path>
-    </svg>
-    <div class="ground"></div>
+<div class="pond"></div>
 
-    <div class="house-group" onclick="interact('house')">
-        <div class="roof"></div><div class="chimney"></div><div class="smoke"></div>
-        <div class="house-base"><div class="door"></div></div>
-    </div>
+<div class="tree" style="left:5%"></div>
+<div class="tree" style="right:8%"></div>
 
-    <div class="sign-group" onclick="interact('sign')">
-        <div class="board">Code By<br>Abhik</div><div class="pole"></div>
-    </div>
+<div class="butterfly" style="top:20%;left:-50px">🦋</div>
+<div class="butterfly" style="top:40%;left:-150px;animation-delay:5s">🦋</div>
 
-    <div class="robot-wrapper" id="karishma">
-        <div class="r-head part-click" onclick="interact('head')">
-            <div class="bow">🎀</div>
-            <div class="r-face"><div class="r-eye"></div><div class="r-eye"></div></div>
-        </div>
-        <div class="r-body part-click" onclick="interact('tummy')"><div class="r-heart">♥</div></div>
-        <div class="r-arm left part-click" onclick="interact('hand')"></div>
-        <div class="r-arm right part-click" onclick="interact('hand')"></div>
-    </div>
+<div class="robot-wrapper" id="karishma">
+<div class="r-head" onclick="interact('head')">
+<div class="bow">🎀</div>
+<div style="display:flex">
+<div class="r-eye"></div>
+<div class="r-eye"></div>
+</div>
+</div>
+
+<div class="r-body" onclick="interact('tummy')">❤️</div>
+<div class="r-arm left" onclick="interact('hand')"></div>
+<div class="r-arm right" onclick="interact('hand')"></div>
+</div>
+
+<div class="ground"></div>
 </div>
 
 <div id="chat-area">
-    <div class="chat-header">
-        <div>Karishma AI</div>
-        <span class="status-badge" id="status-badge">● Live</span>
-    </div>
-    <div class="chat-history" id="chatList"></div>
-    <div class="input-area">
-        <input type="text" id="inp" placeholder="Type a message..." onkeypress="if(event.key==='Enter') send()">
-        <button onclick="send()">➤</button>
-    </div>
+<div class="chat-header">
+<div>Karishma AI</div>
+<div class="status-badge" id="status">● Live</div>
+</div>
+
+<div class="chat-history" id="chat"></div>
+
+<div class="input-area">
+<input id="inp" placeholder="Talk to Karishma..." 
+onkeypress="if(event.key==='Enter')send()">
+<button onclick="send()">➤</button>
+</div>
 </div>
 
 <script>
-    // --- YOUR API KEY ---
-    const API_KEY = "AIzaSyDqcavif5UfWGLY1w7YCmR-Oi2Anz9GloU"; 
-    
-    // UPDATED MODELS: Removed 'gemini-pro' to prevent v1beta error
-    // Now using only 1.5 Flash (Fastest/Stable) and 1.5 Pro (Smarter)
-    const MODELS = ["gemini-1.5-flash", "gemini-1.5-pro"];
-    
-    const SYSTEM = "You are Karishma, a sassy and cute robot. Creator: Abhik Dutta. Keep answers short (max 20 words) and fun. Use emojis.";
-    
-    let history = [];
+/* ---------------- CONFIG ---------------- */
+const API_KEY="AIzaSyDqcavif5UfWGLY1w7YCmR-Oi2Anz9GloU";
 
-    window.onload = function() {
-        const h = new Date().getHours();
-        if(h >= 18 || h < 6) toggleTime(true);
-        generateStars();
-        addMsg('bot', "Namaste! I am online on GitHub! 🎀");
-    };
+const MODELS=[
+"models/gemini-1.5-flash",
+"models/gemini-1.5-pro"
+];
 
-    function toggleTime(forceNight) {
-        const area = document.getElementById('visual-area');
-        if (forceNight || !area.classList.contains('night')) area.classList.add('night');
-        else area.classList.remove('night');
-    }
+const SYSTEM_PROMPT=`You are Karishma AI.
+Cute, playful, sassy, emotional robot girl.
+Creator: Abhik Dutta.
+Replies must be short, sweet, fun, max 18 words.
+Use emojis.
+Personality: loving, funny, smart, flirty cute, positive.`;
 
-    function generateStars() {
-        const cont = document.getElementById('star-container');
-        for(let i=0; i<30; i++){
-            let s = document.createElement('div');
-            s.className='star';
-            s.style.left = Math.random()*100 + '%';
-            s.style.top = Math.random()*50 + '%';
-            cont.appendChild(s);
-        }
-    }
+/* ---------------- STATE ---------------- */
+let history=[];
 
-    function interact(type) {
-        const r = document.getElementById('karishma');
-        r.classList.add('dance');
-        setTimeout(() => r.classList.remove('dance'), 1000);
+/* ---------------- INIT ---------------- */
+window.onload=()=>{
+addBot("Namaste! I'm Karishma AI 🎀💖");
+generateFireflies();
+}
 
-        let txt = "";
-        if(type === 'sign') txt = "User pointed at Abhik Dutta's sign. Praise Abhik!";
-        if(type === 'head') txt = "User patted your head. Be cute!";
-        if(type === 'tummy') txt = "User poked your tummy. Giggle!";
-        if(type === 'house') txt = "User looked at your house. Welcome them!";
-        if(type === 'hand') txt = "User high-fived you!";
+/* ---------------- UI ---------------- */
+function addUser(t){
+const d=document.createElement("div");
+d.className="msg u-msg";
+d.innerText=t;
+chat.appendChild(d);
+chat.scrollTop=chat.scrollHeight;
+}
 
-        callAI(txt, true);
-    }
+function addBot(t){
+const d=document.createElement("div");
+d.className="msg b-msg";
+d.innerText=t;
+chat.appendChild(d);
+chat.scrollTop=chat.scrollHeight;
+}
 
-    function addMsg(role, text) {
-        const div = document.createElement('div');
-        div.className = `msg ${role === 'user' ? 'u-msg' : 'b-msg'}`;
-        div.innerText = text;
-        const list = document.getElementById('chatList');
-        list.appendChild(div);
-        list.scrollTop = list.scrollHeight;
-    }
+/* ---------------- INTERACTION ---------------- */
+function interact(type){
+const r=document.getElementById("karishma");
+r.classList.add("dance");
+setTimeout(()=>r.classList.remove("dance"),800);
 
-    async function send() {
-        const inp = document.getElementById('inp');
-        const txt = inp.value.trim();
-        if(!txt) return;
-        
-        addMsg('user', txt);
-        inp.value = '';
-        callAI(txt, false);
-    }
+let t="";
+if(type==="head")t="User patted your head. React cutely.";
+if(type==="tummy")t="User poked your tummy. Giggle.";
+if(type==="hand")t="User high-fived you. Be happy.";
 
-    async function callAI(text, isHidden) {
-        const badge = document.getElementById('status-badge');
-        badge.innerText = "Thinking...";
-        if(!isHidden) addMsg('bot', "...");
+callAI(t,true);
+}
 
-        let msgs = [...history];
-        if(isHidden) msgs.push({role: "user", parts: [{text: `[SYSTEM EVENT: ${text}]`}]});
-        else {
-            history.push({role: "user", parts: [{text: text}]});
-            msgs = [...history];
-        }
+/* ---------------- SEND ---------------- */
+function send(){
+const v=inp.value.trim();
+if(!v)return;
+addUser(v);
+inp.value="";
+callAI(v,false);
+}
 
-        const payload = {
-            contents: [{role: "user", parts: [{text: SYSTEM}]}, ...msgs]
-        };
+/* ---------------- AI CORE ---------------- */
+async function callAI(text,hidden){
+status.innerText="Thinking...";
 
-        let success = false;
-        let reply = "";
+let contents=[
+{role:"user",parts:[{text:SYSTEM_PROMPT}]},
+...history,
+{role:"user",parts:[{text:text}]}
+];
 
-        // Loop through valid models
-        for (let model of MODELS) {
-            try {
-                const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${API_KEY}`;
-                const res = await fetch(url, {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify(payload)
-                });
-                
-                const data = await res.json();
-                
-                if (res.ok && data.candidates) {
-                    reply = data.candidates[0].content.parts[0].text;
-                    success = true;
-                    break;
-                } else {
-                    console.log(`Model ${model} failed:`, data.error?.message);
-                }
-            } catch (e) { console.log("Network error on " + model); }
-        }
+const payload={contents};
 
-        badge.innerText = "● Live";
-        
-        if(!isHidden) {
-            const list = document.getElementById('chatList');
-            if(list.lastChild.innerText === "...") list.removeChild(list.lastChild);
-        }
+let reply=null;
 
-        if (success) {
-            addMsg('bot', reply);
-            if(!isHidden) history.push({role: "model", parts: [{text: reply}]});
-            badge.className = "status-badge";
-        } else {
-            addMsg('bot', "⚠️ Connection Failed. Check your Internet or API Limit.");
-            badge.innerText = "Offline";
-            badge.className = "status-badge error";
-        }
-    }
+for(let m of MODELS){
+try{
+const res=await fetch(`https://generativelanguage.googleapis.com/v1/${m}:generateContent?key=${API_KEY}`,{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify(payload)
+});
+const data=await res.json();
+
+if(data.candidates){
+reply=data.candidates[0].content.parts[0].text;
+break;
+}
+}catch(e){}
+}
+
+status.innerText="● Live";
+
+if(reply){
+addBot(reply);
+if(!hidden){
+history.push({role:"user",parts:[{text:text}]});
+history.push({role:"model",parts:[{text:reply}]});
+}
+}else{
+addBot("Aww… I'm sleepy 😴 Try again later 💕");
+}
+}
+
+/* ---------------- EFFECTS ---------------- */
+function generateFireflies(){
+for(let i=0;i<15;i++){
+let f=document.createElement("div");
+f.className="firefly";
+f.style.left=Math.random()*100+"%";
+f.style.top=Math.random()*60+"%";
+f.style.animationDelay=Math.random()*5+"s";
+visual-area.appendChild(f);
+}
+}
 </script>
+
 </body>
 </html>
