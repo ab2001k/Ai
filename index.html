@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Karishma AI: System Live</title>
+<title>Karishma AI: Connected</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎀</text></svg>">
 
 <style>
@@ -33,13 +33,11 @@
     .firefly { position: absolute; width: 5px; height: 5px; background: #fff; border-radius: 50%; opacity: 0; animation: glow 4s infinite; pointer-events: none; z-index: 6; }
     @keyframes glow { 0%,100% { opacity:0; } 50% { opacity:1; } }
 
-    /* Trees */
     .tree { position: absolute; bottom: 10%; z-index: 4; cursor: pointer; transition: 0.2s; }
     .tree:active { transform: scale(0.95); }
     .trunk { width: 15px; height: 60px; background: #5d4037; margin: 0 auto; border-radius: 2px; }
     .leaves { width: 60px; height: 60px; background: #2e7d32; border-radius: 50%; position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%); box-shadow: inset -5px -5px 0 rgba(0,0,0,0.1); }
 
-    /* House & Sign */
     .house-group { position: absolute; bottom: 10%; left: 8%; z-index: 5; cursor: pointer; transition: transform 0.2s; }
     .house-group:active { transform: scale(0.95); }
     .house-base { width: 100px; height: 80px; background: #ffccbc; border: 3px solid #4e342e; position: relative; }
@@ -69,11 +67,11 @@
     /* --- CHAT UI --- */
     .chat-header { padding: 15px; background: #fff; font-weight: bold; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
     .status-badge { font-size: 11px; padding: 4px 10px; border-radius: 20px; background: #e8f5e9; color: #2e7d32; }
+    .status-badge.error { background: #ffebee; color: #c62828; }
     .chat-history { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 12px; }
     .msg { padding: 12px 16px; border-radius: 18px; font-size: 14px; max-width: 85%; animation: pop 0.3s ease; box-shadow: 0 1px 3px rgba(0,0,0,0.1); word-wrap: break-word; }
     .u-msg { align-self: flex-end; background: var(--robot-main); color: #fff; border-bottom-right-radius: 2px; }
     .b-msg { align-self: flex-start; background: #fff; border: 1px solid #eee; color: #333; border-bottom-left-radius: 2px; }
-    .err-msg { background: #ffebee; color: #c62828; border: 1px solid #ffcdd2; }
     @keyframes pop { from{transform:scale(0.8); opacity:0;} to{transform:scale(1); opacity:1;} }
     .input-area { padding: 15px; background: #fff; border-top: 1px solid #eee; display: flex; gap: 10px; }
     input { flex: 1; padding: 12px; border-radius: 25px; border: 1px solid #ddd; outline: none; }
@@ -102,7 +100,7 @@
 
 <div id="chat-area">
     <div class="chat-header">
-        <div>Karishma AI</div><div class="status-badge" id="status">● Live</div>
+        <div>Karishma AI</div><div class="status-badge" id="status">● Connecting...</div>
     </div>
     <div class="chat-history" id="chat"></div>
     <div class="input-area"><input id="inp" placeholder="Talk to Karishma..." onkeypress="if(event.key==='Enter')send()"><button onclick="send()">➤</button></div>
@@ -110,11 +108,17 @@
 
 <script>
     // --- API CONFIG ---
-    const API_KEY = "AIzaSyDqcavif5UfWGLY1w7YCmR-Oi2Anz9GloU"; 
+    const API_KEY = "AIzaSyDqcavif5UfWGLY1w7YCmR-Oi2Anz9GloU";
     
-    // We strictly use 1.5-flash as it is the fastest and most stable free model
-    const MODEL = "gemini-1.5-flash"; 
-
+    // THE FIX: We try ALL these names. One of them WILL work.
+    const MODELS = [
+        "gemini-1.5-flash",
+        "gemini-1.5-flash-001",
+        "gemini-1.5-pro",
+        "gemini-1.5-pro-001",
+        "gemini-2.0-flash-exp"
+    ];
+    
     const SYSTEM_PROMPT = `You are Karishma AI. Creator: Abhik Dutta.
     Personality: Cute, sassy, playful robot girl.
     Rules: Keep replies short (max 20 words). Use emojis. Love Abhik.`;
@@ -122,10 +126,12 @@
     let history = [];
 
     window.onload = () => {
+        addBot("Namaste! Searching for best connection... 🎀");
         const h = new Date().getHours();
         if(h >= 18 || h < 6) toggleTime(true);
         generateFireflies();
-        addBot("Namaste! System Online 🎀");
+        // Warm up connection
+        callAI("System Check", true); 
     };
 
     function toggleTime(forceNight) {
@@ -167,10 +173,9 @@
         c.appendChild(d); c.scrollTop = c.scrollHeight;
     }
 
-    function addBot(t, isError=false) {
+    function addBot(t) {
         const d = document.createElement("div");
-        d.className = isError ? "msg b-msg err-msg" : "msg b-msg"; 
-        d.innerText = t;
+        d.className = "msg b-msg"; d.innerText = t;
         const c = document.getElementById("chat");
         c.appendChild(d); c.scrollTop = c.scrollHeight;
     }
@@ -186,9 +191,8 @@
 
     async function callAI(text, hidden) {
         const status = document.getElementById("status");
-        status.innerText = "Thinking...";
+        if(!hidden) status.innerText = "Thinking...";
         
-        // Prepare History
         let msgs = [...history];
         if(hidden) msgs.push({role: "user", parts: [{text: `[SYSTEM: ${text}]`}]});
         else {
@@ -200,36 +204,40 @@
             contents: [{role: "user", parts: [{text: SYSTEM_PROMPT}]}, ...msgs]
         };
 
-        try {
-            // Using v1beta which is required for 1.5 models
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${API_KEY}`;
-            const res = await fetch(url, {
-                method: "POST",
-                headers: {"Content-Type": "application/json"},
-                body: JSON.stringify(payload)
-            });
-            
-            const data = await res.json();
+        let reply = null;
+        let lastError = "";
 
-            // CHECK FOR GOOGLE ERRORS
-            if(!res.ok) {
-                const err = data.error?.message || res.statusText;
-                console.error("Google API Error:", err);
-                addBot(`⚠️ Google Error: ${err}`, true);
-                status.innerText = "Error";
-                return;
-            }
+        // TRY EVERY MODEL UNTIL ONE WORKS
+        for(let m of MODELS) {
+            try {
+                // Using v1beta as standard
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent?key=${API_KEY}`;
+                const res = await fetch(url, {
+                    method: "POST",
+                    headers: {"Content-Type": "application/json"},
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                
+                if(data.candidates) {
+                    reply = data.candidates[0].content.parts[0].text;
+                    // It worked! Stop trying other models.
+                    break;
+                } else if(data.error) {
+                    lastError = data.error.message;
+                    console.log(`Model ${m} failed: ${lastError}`);
+                }
+            } catch(e) { lastError = e.message; }
+        }
 
-            if(data.candidates) {
-                const reply = data.candidates[0].content.parts[0].text;
-                if(!hidden || !text.includes("User")) addBot(reply);
-                if(!hidden) history.push({role: "model", parts: [{text: reply}]});
-                status.innerText = "● Live";
-            }
-        } catch(e) { 
-            console.error(e);
-            addBot(`⚠️ Network Error: ${e.message}`, true);
-            status.innerText = "Offline";
+        if(reply) {
+            status.innerText = "● Live";
+            if(!hidden || !text.includes("System Check")) addBot(reply);
+            if(!hidden) history.push({role: "model", parts: [{text: reply}]});
+        } else {
+            status.innerText = "Error";
+            status.className = "status-badge error";
+            addBot(`⚠️ Connection Failed. Last Google Error: ${lastError}`);
         }
     }
 </script>
