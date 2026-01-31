@@ -3,11 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Karishma AI: Fixed</title>
+<title>Karishma AI: Auto-Detect</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎀</text></svg>">
 
 <style>
-    /* --- VARIABLES --- */
+    /* --- VISUAL VARIABLES --- */
     :root { --sky-day: linear-gradient(180deg,#4facfe,#00f2fe); --sky-night: linear-gradient(180deg,#0f2027,#203a43,#2c5364); --robot-main:#ff4081; --chat-bg:#ffffff; }
     * { box-sizing: border-box; }
     body { margin: 0; padding: 0; width: 100vw; height: 100vh; overflow: hidden; background: #000; font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: row; }
@@ -43,7 +43,10 @@
     .house-base { width: 100px; height: 80px; background: #ffccbc; border: 3px solid #4e342e; position: relative; }
     .roof { width: 0; height: 0; position: absolute; top: -50px; left: -15px; border-left: 65px solid transparent; border-right: 65px solid transparent; border-bottom: 50px solid #d32f2f; }
     .door { width: 30px; height: 45px; background: #5d4037; position: absolute; bottom: 0; left: 35px; border-radius: 20px 20px 0 0; }
-    
+    .chimney { width: 20px; height: 35px; background: #4e342e; position: absolute; top: -50px; right: 20px; }
+    .smoke { width: 15px; height: 15px; background: rgba(255,255,255,0.8); border-radius: 50%; position: absolute; top: -60px; right: 22px; opacity: 0; animation: puff 3s infinite; }
+    @keyframes puff { 0% { transform: translateY(0) scale(1); opacity: 0.8; } 100% { transform: translateY(-40px) scale(2); opacity: 0; } }
+
     .sign-group { position: absolute; bottom: 10%; right: 15%; z-index: 5; cursor: pointer; transform: rotate(5deg); }
     .board { background: #ffa726; border: 3px solid #e65100; padding: 5px; font-size: 10px; font-weight: bold; text-align: center; border-radius: 4px; color: #bf360c; }
     .pole { width: 5px; height: 40px; background: #5d4037; margin: 0 auto; }
@@ -94,12 +97,11 @@
 
 <div id="key-modal" style="display:none;">
     <div class="modal-box">
-        <h2>🎀 Setup Karishma</h2>
-        <p>I have forgotten the old key!</p>
-        <p>Please paste the <strong>NEW Key</strong> below.</p>
+        <h2>🎀 Wake Up Karishma</h2>
+        <p>Please paste your <strong>Gemini API Key</strong>.</p>
         <input type="password" id="apiKeyInput" class="key-input" placeholder="Paste AIza... key here">
-        <button class="save-btn" onclick="saveKey()">Save & Start</button>
-        <p style="font-size:12px; margin-top:15px; cursor:pointer; color:blue;" onclick="window.open('https://aistudio.google.com/app/apikey')">Get New Key (Free)</p>
+        <button class="save-btn" onclick="saveKey()">Connect & Auto-Detect</button>
+        <p style="font-size:12px; margin-top:15px; cursor:pointer; color:blue;" onclick="window.open('https://aistudio.google.com/app/apikey')">Get Free Key</p>
     </div>
 </div>
 
@@ -127,12 +129,11 @@
 </div>
 
 <script>
-    // --- FORCE NEW KEY SLOT ---
-    // I changed this variable name. Your browser won't find the old one,
-    // so it will force the popup to appear.
-    let API_KEY = localStorage.getItem("gemini_key_v3_new"); 
+    // --- FORCE NEW KEY SLOT (Clean Slate) ---
+    let API_KEY = localStorage.getItem("gemini_key_auto_detect"); 
     
-    const MODEL_NAME = "gemini-1.5-flash"; 
+    // We will find the model dynamically
+    let SELECTED_MODEL = ""; 
     
     const SYSTEM_PROMPT = `You are Karishma AI. Creator: Abhik Dutta.
     Personality: Cute, sassy, playful robot girl.
@@ -140,31 +141,68 @@
 
     let history = [];
 
-    window.onload = () => {
+    // --- STARTUP ---
+    window.onload = async () => {
         if (!API_KEY) {
             document.getElementById("key-modal").style.display = "flex";
         } else {
-            addBot("Namaste! Key loaded. I'm ready! 🎀");
+            addBot("Namaste! Key Found. Finding best model... 📡");
             initVisuals();
+            await autoDetectModel();
         }
     };
 
     function saveKey() {
         const input = document.getElementById("apiKeyInput").value.trim();
         if (input.startsWith("AIza")) {
-            localStorage.setItem("gemini_key_v3_new", input);
+            localStorage.setItem("gemini_key_auto_detect", input);
             API_KEY = input;
             document.getElementById("key-modal").style.display = "none";
-            addBot("New Key Saved! Try typing 'Hi'. ✨");
+            addBot("Key Saved! Detecting Model... 📡");
             initVisuals();
+            autoDetectModel();
         } else {
             alert("Invalid Key! It must start with 'AIza'.");
         }
     }
 
+    async function autoDetectModel() {
+        try {
+            // 1. Ask Google what models are available for this key
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${API_KEY}`);
+            const data = await response.json();
+            
+            if(!response.ok) throw new Error("Key Error");
+            
+            // 2. Filter for "generateContent" models
+            const validModels = data.models.filter(m => m.supportedGenerationMethods.includes("generateContent"));
+            
+            // 3. Pick the best one (Flash > Pro > 1.0)
+            const best = validModels.find(m => m.name.includes("1.5-flash")) || 
+                         validModels.find(m => m.name.includes("1.5-pro")) || 
+                         validModels[0];
+                         
+            if(best) {
+                // IMPORTANT: The API returns "models/gemini-1.5-flash", we use it exactly as is.
+                SELECTED_MODEL = best.name.replace("models/", ""); 
+                addBot(`✅ Connected to: ${SELECTED_MODEL}`);
+                document.getElementById("status").innerText = "● Live";
+            } else {
+                throw new Error("No Chat Models Found");
+            }
+
+        } catch(e) {
+            console.error(e);
+            addBot("⚠️ Key Error: " + e.message);
+            // If key is bad, clear it so they can try again
+            localStorage.removeItem("gemini_key_auto_detect");
+            setTimeout(() => location.reload(), 3000);
+        }
+    }
+
     function clearKey() {
         if(confirm("Enter a new API Key?")) {
-            localStorage.removeItem("gemini_key_v3_new");
+            localStorage.removeItem("gemini_key_auto_detect");
             location.reload();
         }
     }
@@ -245,8 +283,13 @@
             contents: [{role: "user", parts: [{text: SYSTEM_PROMPT}]}, ...msgs]
         };
 
+        if(!SELECTED_MODEL) {
+            addBot("⚠️ Still finding a working model... wait a sec.");
+            return;
+        }
+
         try {
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent?key=${API_KEY}`;
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/${SELECTED_MODEL}:generateContent?key=${API_KEY}`;
             const res = await fetch(url, {
                 method: "POST",
                 headers: {"Content-Type": "application/json"},
@@ -260,14 +303,7 @@
                 if(!hidden) history.push({role: "model", parts: [{text: reply}]});
                 status.innerText = "● Live";
             } else {
-                console.error(data);
-                // IF 400 ERROR, PROMPT FOR NEW KEY AUTOMATICALLY
-                if(data.error && data.error.code === 400) {
-                     alert("API Key Expired! Please click 'Change Key' and paste a new one.");
-                     clearKey();
-                } else {
-                    addBot("⚠️ Google Error: " + (data.error?.message || "Unknown"));
-                }
+                addBot("⚠️ Google Error: " + (data.error?.message || "Unknown"));
             }
         } catch(e) { 
             console.log(e);
