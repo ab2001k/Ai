@@ -4,241 +4,174 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Karishma AI: Universal</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎀</text></svg>">
 
 <style>
-    /* --- VISUALS --- */
-    :root { --sky-day: linear-gradient(180deg,#4facfe,#00f2fe); --sky-night: linear-gradient(180deg,#0f2027,#203a43,#2c5364); --robot-main:#ff4081; --chat-bg:#ffffff; }
-    * { box-sizing: border-box; }
-    body { margin: 0; padding: 0; width: 100vw; height: 100vh; overflow: hidden; background: #000; font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: row; }
-
-    /* --- LAYOUT --- */
-    #visual-area { flex: 1; position: relative; overflow: hidden; background: var(--sky-day); transition: 1.5s; z-index: 1; }
-    #visual-area.night { background: var(--sky-night); }
-    #chat-area { width: 380px; background: var(--chat-bg); display: flex; flex-direction: column; border-left: 1px solid #ddd; z-index: 100; box-shadow: -5px 0 20px rgba(0,0,0,0.15); }
-    @media (max-width: 800px) { body { flex-direction: column; } #visual-area { height: 55%; flex: none; } #chat-area { width: 100%; flex: 1; border-left: none; border-top: 1px solid #ddd; } }
-
-    /* --- SCENE --- */
-    .mountains-svg { position: absolute; bottom: 0; left: 0; width: 100%; height: auto; pointer-events: none; z-index: 2; opacity: 0.8; filter: drop-shadow(0 0 10px rgba(0,0,0,0.1)); }
-    .ground { position: absolute; bottom: 0; width: 100%; height: 12%; background: #76b852; z-index: 3; border-top: 6px solid #6fa148; }
-    #visual-area.night .ground { filter: brightness(0.4); }
-    
-    .celestial-toggle { position: absolute; top: 20px; right: 20px; width: 60px; height: 60px; z-index: 10; cursor: pointer; }
-    .sun { width: 100%; height: 100%; background: #ffd700; border-radius: 50%; box-shadow: 0 0 40px #ffd700; animation: spin 40s linear infinite; }
-    .moon { width: 100%; height: 100%; background: transparent; border-radius: 50%; box-shadow: -15px 10px 0 2px #fff; display: none; }
-    #visual-area.night .sun { display: none; }
-    #visual-area.night .moon { display: block; }
-    @keyframes spin { 100% { transform: rotate(360deg); } }
-
-    .firefly { position: absolute; width: 5px; height: 5px; background: #fff; border-radius: 50%; opacity: 0; animation: glow 4s infinite; pointer-events: none; z-index: 6; }
-    @keyframes glow { 0%,100% { opacity:0; } 50% { opacity:1; } }
-
-    /* SCENE ITEMS */
-    .tree { position: absolute; bottom: 10%; z-index: 4; cursor: pointer; transition: 0.2s; }
-    .tree:active { transform: scale(0.95); }
-    .trunk { width: 15px; height: 60px; background: #5d4037; margin: 0 auto; border-radius: 2px; }
-    .leaves { width: 60px; height: 60px; background: #2e7d32; border-radius: 50%; position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%); box-shadow: inset -5px -5px 0 rgba(0,0,0,0.1); }
-
-    .house-group { position: absolute; bottom: 10%; left: 8%; z-index: 5; cursor: pointer; transition: transform 0.2s; }
-    .house-group:active { transform: scale(0.95); }
-    .house-base { width: 100px; height: 80px; background: #ffccbc; border: 3px solid #4e342e; position: relative; }
-    .roof { width: 0; height: 0; position: absolute; top: -50px; left: -15px; border-left: 65px solid transparent; border-right: 65px solid transparent; border-bottom: 50px solid #d32f2f; }
-    .door { width: 30px; height: 45px; background: #5d4037; position: absolute; bottom: 0; left: 35px; border-radius: 20px 20px 0 0; }
-    .chimney { width: 20px; height: 35px; background: #4e342e; position: absolute; top: -50px; right: 20px; }
-    .smoke { width: 15px; height: 15px; background: rgba(255,255,255,0.8); border-radius: 50%; position: absolute; top: -60px; right: 22px; opacity: 0; animation: puff 3s infinite; }
-    @keyframes puff { 0% { transform: translateY(0) scale(1); opacity: 0.8; } 100% { transform: translateY(-40px) scale(2); opacity: 0; } }
-
-    .sign-group { position: absolute; bottom: 10%; right: 15%; z-index: 5; cursor: pointer; transform: rotate(5deg); }
-    .board { background: #ffa726; border: 3px solid #e65100; padding: 5px; font-size: 10px; font-weight: bold; text-align: center; border-radius: 4px; color: #bf360c; }
-    .pole { width: 5px; height: 40px; background: #5d4037; margin: 0 auto; }
-
-    /* --- ROBOT --- */
-    .robot-wrapper { position: absolute; bottom: 12%; left: 50%; transform: translateX(-50%); z-index: 20; display: flex; flex-direction: column; align-items: center; animation: float 4s ease-in-out infinite; filter: drop-shadow(0 0 10px rgba(255,64,129,0.3)); }
-    @keyframes float { 0%,100%{transform:translate(-50%, 0);} 50%{transform:translate(-50%, -10px);} }
-    .r-head { width: 110px; height: 90px; background: var(--robot-main); border-radius: 35px; border: 5px solid #fff; position: relative; display: flex; align-items: center; justify-content: center; cursor: pointer; }
-    .bow { position: absolute; top: -25px; right: -5px; font-size: 40px; }
-    .r-eyes { display: flex; gap: 15px; }
-    .r-eye { width: 14px; height: 24px; background: #00e5ff; border-radius: 10px; animation: blink 4s infinite; box-shadow: 0 0 10px #00e5ff; }
-    @keyframes blink { 0%,48%,52%,100%{height:24px;} 50%{height:3px;} }
-    .r-body { width: 75px; height: 85px; background: var(--robot-main); border-radius: 25px; margin-top: -15px; border: 5px solid #fff; z-index: 1; display: flex; align-items: center; justify-content: center; cursor: pointer; }
-    .r-heart { font-size: 35px; color: #fff; }
-    .r-arm { width: 20px; height: 60px; background: #ff80ab; border: 4px solid #fff; border-radius: 10px; position: absolute; top: 90px; cursor: pointer; }
-    .r-arm.left { left: -25px; transform: rotate(25deg); }
-    .r-arm.right { right: -25px; transform: rotate(-25deg); }
-    .dance { animation: danceMove 0.6s infinite; }
-    @keyframes danceMove { 0%,100%{transform:translateX(-50%) rotate(0);} 25%{transform:translateX(-50%) rotate(-8deg);} 75%{transform:translateX(-50%) rotate(8deg);} }
-
-    /* --- CHAT --- */
-    .chat-header { padding: 15px; background: #fff; font-weight: bold; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
-    .status-badge { font-size: 11px; padding: 4px 10px; border-radius: 20px; background: #e8f5e9; color: #2e7d32; }
-    .chat-history { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 12px; }
-    .msg { padding: 12px 16px; border-radius: 18px; font-size: 14px; max-width: 85%; animation: pop 0.3s ease; box-shadow: 0 1px 3px rgba(0,0,0,0.1); word-wrap: break-word; }
-    .u-msg { align-self: flex-end; background: var(--robot-main); color: #fff; border-bottom-right-radius: 2px; }
-    .b-msg { align-self: flex-start; background: #fff; border: 1px solid #eee; color: #333; border-bottom-left-radius: 2px; }
-    @keyframes pop { from{transform:scale(0.8); opacity:0;} to{transform:scale(1); opacity:1;} }
-    .input-area { padding: 15px; background: #fff; border-top: 1px solid #eee; display: flex; gap: 10px; }
-    input { flex: 1; padding: 12px; border-radius: 25px; border: 1px solid #ddd; outline: none; }
-    button { width: 45px; height: 45px; border-radius: 50%; border: none; background: var(--robot-main); color: #fff; font-size: 18px; cursor: pointer; }
+:root {
+  --robot-main:#ff4081;
+  --chat-bg:#ffffff;
+  --sky-day:linear-gradient(180deg,#4facfe,#00f2fe);
+  --sky-night:linear-gradient(180deg,#0f2027,#203a43,#2c5364);
+}
+*{box-sizing:border-box}
+body{
+  margin:0;height:100vh;display:flex;
+  font-family:Segoe UI,sans-serif;
+}
+#visual-area{
+  flex:1;position:relative;
+  background:var(--sky-day);
+  transition:1s;
+}
+#visual-area.night{background:var(--sky-night)}
+#chat-area{
+  width:380px;background:#fff;
+  display:flex;flex-direction:column;
+  border-left:1px solid #ddd;
+}
+@media(max-width:800px){
+  body{flex-direction:column}
+  #visual-area{height:55%}
+  #chat-area{width:100%}
+}
+.robot{
+  position:absolute;bottom:15%;
+  left:50%;transform:translateX(-50%);
+  font-size:80px;cursor:pointer;
+  animation:float 4s infinite;
+}
+@keyframes float{
+  0%,100%{transform:translate(-50%,0)}
+  50%{transform:translate(-50%,-10px)}
+}
+.chat-header{
+  padding:15px;font-weight:bold;
+  border-bottom:1px solid #eee;
+  display:flex;justify-content:space-between;
+}
+.status{font-size:12px}
+.chat{
+  flex:1;overflow:auto;padding:15px;
+  display:flex;flex-direction:column;gap:10px;
+}
+.msg{
+  max-width:80%;padding:10px 14px;
+  border-radius:16px;font-size:14px;
+}
+.user{align-self:flex-end;background:#ff4081;color:#fff}
+.bot{align-self:flex-start;background:#f5f5f5}
+.input{
+  display:flex;padding:10px;border-top:1px solid #eee;
+}
+input{
+  flex:1;padding:10px;border-radius:20px;
+  border:1px solid #ddd;
+}
+button{
+  margin-left:8px;border:none;
+  width:42px;height:42px;
+  border-radius:50%;
+  background:#ff4081;color:#fff;
+  font-size:18px;cursor:pointer;
+}
 </style>
 </head>
+
 <body>
 
 <div id="visual-area">
-    <div class="celestial-toggle" onclick="toggleTime()"><div class="sun"></div><div class="moon"></div></div>
-    <svg class="mountains-svg" viewBox="0 0 1000 300" preserveAspectRatio="none"><path d="M0,300 L250,100 L500,300 L750,50 L1000,300 Z" fill="#9c27b0" opacity="0.6"></path><path d="M-100,300 L200,180 L400,300 L600,150 L900,300 Z" fill="#673ab7" opacity="0.4"></path></svg>
-    <div class="ground"></div>
-    <div class="tree" style="left:5%" onclick="interact('tree')"><div class="leaves"></div><div class="trunk"></div></div>
-    <div class="tree" style="right:5%" onclick="interact('tree')"><div class="leaves"></div><div class="trunk"></div></div>
-    <div class="house-group" onclick="interact('house')"><div class="roof"></div><div class="chimney"></div><div class="smoke"></div><div class="house-base"><div class="door"></div></div></div>
-    <div class="sign-group" onclick="interact('sign')"><div class="board">Code By<br>Abhik</div><div class="pole"></div></div>
-    <div class="robot-wrapper" id="karishma">
-        <div class="r-head" onclick="interact('head')"><div class="bow">🎀</div><div class="r-eyes"><div class="r-eye"></div><div class="r-eye"></div></div></div>
-        <div class="r-body" onclick="interact('tummy')"><div class="r-heart">❤️</div></div>
-        <div class="r-arm left" onclick="interact('hand')"></div><div class="r-arm right" onclick="interact('hand')"></div>
-    </div>
+  <div class="robot" onclick="interact()">🤖🎀</div>
 </div>
 
 <div id="chat-area">
-    <div class="chat-header">
-        <div>Karishma AI</div><div class="status-badge" id="status">● Ready</div>
-    </div>
-    <div class="chat-history" id="chat"></div>
-    <div class="input-area"><input id="inp" placeholder="Type Hi..." onkeypress="if(event.key==='Enter')send()"><button onclick="send()">➤</button></div>
+  <div class="chat-header">
+    Karishma AI
+    <span class="status" id="status">● Ready</span>
+  </div>
+  <div class="chat" id="chat"></div>
+  <div class="input">
+    <input id="inp" placeholder="Say hi…" 
+      onkeypress="if(event.key==='Enter')send()">
+    <button onclick="send()">➤</button>
+  </div>
 </div>
 
 <script>
-    // --- API CONFIGURATION ---
-    const API_KEY = "sk-abcdef1234567890abcdef1234567890abcdef12"; // Your updated key
-    
-    // --- DUAL MODE SYSTEM ---
-    const IS_GEMINI = API_KEY.startsWith("AIza");
-    const MODEL_NAME = IS_GEMINI ? "gemini-1.5-flash" : "gpt-3.5-turbo"; 
-    
-    const SYSTEM_PROMPT = `You are Karishma AI. Creator: Abhik Dutta.
-    Personality: Cute, sassy, playful robot girl.
-    Rules: Keep replies short (max 20 words). Use emojis. Love Abhik.`;
+/* 🔑 PUT YOUR KEY HERE */
+const GEMINI_API_KEY = "AIzaSyAmUMlyBICc9OkP5Y_Nzkt1JzkryVgdQw4";
+const MODEL = "gemini-1.5-flash";
 
-    let history = [];
+const SYSTEM_PROMPT =
+"You are Karishma AI, a cute playful robot girl. Replies under 20 words. Use emojis. Love Abhik.";
 
-    window.onload = () => {
-        addBot(`Namaste! Mode: ${IS_GEMINI ? "Google Gemini" : "OpenAI/Compatible"} 🎀`);
-        const h = new Date().getHours();
-        if(h >= 18 || h < 6) toggleTime(true);
-        generateFireflies();
-    };
+let history = [];
 
-    function toggleTime(forceNight) {
-        const v = document.getElementById('visual-area');
-        if(forceNight || !v.classList.contains('night')) v.classList.add('night');
-        else v.classList.remove('night');
-    }
+const chat = document.getElementById("chat");
+const status = document.getElementById("status");
 
-    function generateFireflies() {
-        const v = document.getElementById('visual-area');
-        for(let i=0; i<15; i++){
-            let f = document.createElement("div");
-            f.className = "firefly";
-            f.style.left = Math.random()*100 + "%";
-            f.style.top = Math.random()*60 + "%";
-            f.style.animationDelay = Math.random()*5 + "s";
-            v.appendChild(f);
-        }
-    }
+function addMsg(text, cls){
+  const d = document.createElement("div");
+  d.className = "msg " + cls;
+  d.textContent = text;
+  chat.appendChild(d);
+  chat.scrollTop = chat.scrollHeight;
+}
 
-    function interact(type) {
-        const r = document.getElementById("karishma");
-        r.classList.add("dance");
-        setTimeout(() => r.classList.remove("dance"), 800);
-        let t = "";
-        if(type === 'head') t = "User patted your head. React cutely.";
-        if(type === 'tummy') t = "User poked your tummy. Giggle.";
-        if(type === 'hand') t = "User high-fived you.";
-        if(type === 'sign') t = "User pointed at Abhik's sign. Praise him!";
-        if(type === 'house') t = "User liked your house. Welcome them.";
-        if(type === 'tree') t = "User loves the nature.";
-        callAI(t, true);
-    }
+window.onload = () => {
+  addMsg("Namaste! I’m Karishma 🎀🤖", "bot");
+  if(new Date().getHours() >= 18){
+    document.getElementById("visual-area").classList.add("night");
+  }
+};
 
-    function addUser(t) {
-        const d = document.createElement("div");
-        d.className = "msg u-msg"; d.innerText = t;
-        const c = document.getElementById("chat");
-        c.appendChild(d); c.scrollTop = c.scrollHeight;
-    }
+function interact(){
+  callAI("User interacted cutely with you.");
+}
 
-    function addBot(t) {
-        const d = document.createElement("div");
-        d.className = "msg b-msg"; d.innerText = t;
-        const c = document.getElementById("chat");
-        c.appendChild(d); c.scrollTop = c.scrollHeight;
-    }
+function send(){
+  const i = document.getElementById("inp");
+  const text = i.value.trim();
+  if(!text) return;
+  i.value="";
+  addMsg(text,"user");
+  callAI(text);
+}
 
-    function send() {
-        const i = document.getElementById("inp");
-        const v = i.value.trim();
-        if(!v) return;
-        addUser(v);
-        i.value = "";
-        callAI(v, false);
-    }
+async function callAI(text){
+  status.textContent="Thinking…";
 
-    async function callAI(text, hidden) {
-        const status = document.getElementById("status");
-        if(!hidden) status.innerText = "Thinking...";
-        
-        let reply = "Error";
+  const payload = {
+    contents:[
+      {role:"user", parts:[{text:SYSTEM_PROMPT}]},
+      ...history,
+      {role:"user", parts:[{text:text}]}
+    ]
+  };
 
-        try {
-            // --- GOOGLE GEMINI LOGIC ---
-            if(IS_GEMINI) {
-                let msgs = [...history];
-                if(hidden) msgs.push({role: "user", parts: [{text: `[SYSTEM: ${text}]`}]});
-                else {
-                    history.push({role: "user", parts: [{text: text}]});
-                    msgs = [...history];
-                }
-                const payload = { contents: [{role: "user", parts: [{text: SYSTEM_PROMPT}]}, ...msgs] };
-                
-                const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent?key=${API_KEY}`, {
-                    method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify(payload)
-                });
-                const data = await res.json();
-                if(data.candidates) reply = data.candidates[0].content.parts[0].text;
-                else throw new Error(data.error?.message || "Gemini Error");
-            } 
-            
-            // --- OPENAI / GROQ / OTHER LOGIC ---
-            else {
-                // OpenAI Structure
-                let messages = [{role: "system", content: SYSTEM_PROMPT}];
-                // Convert Gemini history format to OpenAI format
-                history.forEach(h => messages.push({role: h.role === "model" ? "assistant" : "user", content: h.parts[0].text}));
-                messages.push({role: "user", content: text});
+  try{
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${GEMINI_API_KEY}`,
+      {
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify(payload)
+      }
+    );
 
-                // Default to OpenAI, but user can change URL for Groq/Deepseek here
-                const url = "https://api.openai.com/v1/chat/completions"; 
-                
-                const res = await fetch(url, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json", "Authorization": `Bearer ${API_KEY}` },
-                    body: JSON.stringify({ model: "gpt-3.5-turbo", messages: messages })
-                });
-                const data = await res.json();
-                if(data.choices) reply = data.choices[0].message.content;
-                else throw new Error(data.error?.message || "API Error");
-            }
+    const data = await res.json();
+    const reply = data.candidates?.[0]?.content?.parts?.[0]?.text;
 
-            // Success handling
-            status.innerText = "● Live";
-            if(!hidden || !text.includes("Hi")) addBot(reply);
-            if(!hidden) history.push({role: IS_GEMINI ? "model" : "assistant", parts: [{text: reply}]});
+    if(!reply) throw "No reply";
 
-        } catch(e) {
-            console.log(e);
-            status.innerText = "Error";
-            addBot(`⚠️ Connection Failed. Key: ${API_KEY.substring(0,6)}...`);
-        }
-    }
+    addMsg(reply,"bot");
+    history.push({role:"model",parts:[{text:reply}]});
+    status.textContent="● Live";
+
+  }catch(e){
+    console.error(e);
+    status.textContent="Error";
+    addMsg("⚠️ Connection failed","bot");
+  }
+}
 </script>
 
 </body>
