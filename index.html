@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Karishma: Fixed</title>
+<title>Karishma: Brute Force</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎀</text></svg>">
 
 <style>
@@ -44,7 +44,7 @@
         #chat-area { flex: 4; height: 100%; border-radius: 0; border-left: 2px solid #fff; } 
     }
 
-    /* ================= WORLD OBJECTS ================= */
+    /* ================= VISUALS ================= */
     .celestial { position: absolute; width: 70px; height: 70px; border-radius: 50%; left: 50%; top: 110%; transition: 1s; z-index: 1; cursor: pointer; }
     #sun { background: radial-gradient(circle, #fff, #ffd700); box-shadow: 0 0 60px 20px rgba(255, 215, 0, 0.6); }
     #moon { background: radial-gradient(#fff, #ccc); box-shadow: 0 0 30px #fff; }
@@ -83,13 +83,10 @@
         position: absolute; top: 0; left: 0; box-shadow: inset -5px -5px 10px rgba(0,0,0,0.2);
     }
 
-    /* BIRD FLIGHT FIXED */
     .css-bird { position: absolute; width: 30px; height: 10px; z-index: 10; animation: flyAcross 25s linear infinite; top: 15%; }
     .wing { width: 15px; height: 8px; position: absolute; top: 0; background: #222; border-radius: 50% 50% 0 0; }
-    /* Wings flapping in opposite directions */
     .wing-l { left: 0; transform-origin: right bottom; animation: flapL 0.3s infinite alternate ease-in-out; }
     .wing-r { right: 0; transform-origin: left bottom; animation: flapR 0.3s infinite alternate ease-in-out; }
-    
     @keyframes flyAcross { 0% { left: -10%; transform: translateY(0); } 100% { left: 110%; transform: translateY(-30px); } }
     @keyframes flapL { 0% { transform: rotate(0deg); } 100% { transform: rotate(40deg); } }
     @keyframes flapR { 0% { transform: rotate(0deg); } 100% { transform: rotate(-40deg); } }
@@ -144,7 +141,7 @@
         <h3>🎀 Karishma Setup</h3>
         <p>Paste your <strong>Gemini API Key</strong>.</p>
         <input type="password" id="apiKeyInput" class="key-in" placeholder="AIza...">
-        <button class="btn-main" id="connBtn" onclick="saveKey()">Connect</button>
+        <button class="btn-main" onclick="saveKey()">Connect</button>
         <p style="font-size:11px; margin-top:10px;"><a href="https://aistudio.google.com/app/apikey" target="_blank">Get Free Key</a></p>
     </div>
 </div>
@@ -193,13 +190,19 @@
 
 <script>
     // --- 1. CONFIGURATION ---
-    // Use new key to force fresh detection
-    let API_KEY = localStorage.getItem("gemini_key_v6_fixed"); 
-    let SELECTED_MODEL = ""; 
+    let API_KEY = localStorage.getItem("gemini_key_v7_brute"); 
+    let SELECTED_MODEL = localStorage.getItem("gemini_model_saved") || ""; 
     
+    const MODELS_TO_CHECK = [
+        "gemini-1.5-flash",
+        "gemini-1.5-pro",
+        "gemini-2.0-flash-exp",
+        "gemini-1.5-flash-8b"
+    ];
+
     const SYSTEM_PROMPT = `You are Karishma AI. Creator: Abhik Dutta. 
     Location: Kalain/Silchar area.
-    Personality: Cute robot girl assistant. Helpful, uses emojis.
+    Personality: Cute futuristic robot girl. Sassy, helpful, uses emojis.
     Task: Detect user's language and reply in that language.
     Keep replies short (max 20 words).`;
     let history = [];
@@ -210,35 +213,39 @@
             document.getElementById("key-modal").style.display = "flex";
         } else {
             addBot("System Online! 🎀");
-            // If key exists, verify model immediately
-            await findWorkingModel();
+            // If no model saved or model was bad, find a new one
+            if (!SELECTED_MODEL) {
+                await findWorkingModel();
+            } else {
+                document.getElementById("status").innerText = "● Online";
+            }
         }
         updateSky();
         fetchWeather();
         setInterval(updateSky, 60000);
     };
 
-    // --- 3. ROBUST "TEST & VERIFY" MODEL FINDER ---
+    // --- 3. BRUTE FORCE MODEL FINDER (THE FIX) ---
     async function findWorkingModel() {
         document.getElementById("status").innerText = "● Scanning";
-        const models = ["gemini-1.5-flash", "gemini-1.5-pro", "gemini-1.0-pro"];
         
-        for (let model of models) {
-            console.log("Testing " + model + "...");
-            const works = await testModel(model);
+        for (let model of MODELS_TO_CHECK) {
+            console.log("Attempting handshake with " + model + "...");
+            const works = await testModelConnection(model);
             if (works) {
                 SELECTED_MODEL = model;
+                localStorage.setItem("gemini_model_saved", model);
                 document.getElementById("status").innerText = "● Online";
-                console.log("Selected: " + model);
+                addBot(`Connected to ${model}! ✨`);
                 return;
             }
         }
         
-        addBot("⚠️ No working model found. Please reset Key.");
+        addBot("⚠️ Connection Failed. Please check your Key.");
         document.getElementById("status").innerText = "Error";
     }
 
-    async function testModel(modelName) {
+    async function testModelConnection(modelName) {
         try {
             const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${API_KEY}`;
             const res = await fetch(url, {
@@ -288,21 +295,22 @@
         } catch(e) { w.innerText = "📍 Weather Offline"; }
     }
 
-    // --- 6. SETUP FUNCTIONS ---
+    // --- 6. API KEY SETUP ---
     function saveKey() {
         const input = document.getElementById("apiKeyInput").value.trim();
         if (input.startsWith("AIza")) {
-            localStorage.setItem("gemini_key_v6_fixed", input);
+            localStorage.setItem("gemini_key_v7_brute", input);
             API_KEY = input;
             document.getElementById("key-modal").style.display = "none";
-            addBot("Key Saved! Scanning Models... 📡");
+            addBot("Key Saved! Finding best model... 📡");
             findWorkingModel();
         } else { alert("Invalid Key!"); }
     }
 
     function clearKey() {
         if(confirm("Reset Key?")) {
-            localStorage.removeItem("gemini_key_v6_fixed");
+            localStorage.removeItem("gemini_key_v7_brute");
+            localStorage.removeItem("gemini_model_saved");
             location.reload();
         }
     }
@@ -343,11 +351,9 @@
 
     async function callAI(text, hidden, fallback) {
         if(!SELECTED_MODEL) {
-            // Try finding model again if missing
+            // Retry finding model if missing
             await findWorkingModel();
-            if(!SELECTED_MODEL) {
-                addBot("⚠️ Still connecting..."); return;
-            }
+            if(!SELECTED_MODEL) return;
         }
         
         const status = document.getElementById("status");
@@ -367,7 +373,8 @@
         try {
             const url = `https://generativelanguage.googleapis.com/v1beta/models/${SELECTED_MODEL}:generateContent?key=${API_KEY}`;
             const res = await fetch(url, {
-                method: "POST", headers: {"Content-Type": "application/json"},
+                method: "POST", 
+                headers: {"Content-Type": "application/json"},
                 body: JSON.stringify({ 
                     contents: [{role: "user", parts: [{text: SYSTEM_PROMPT}]}, ...msgs],
                     safetySettings: safetySettings 
@@ -386,11 +393,19 @@
                 }
                 status.innerText = "● Online";
             } else {
-                if(fallback) addBot(fallback); else addBot("I'm feeling shy! 🙈");
+                // If API returns empty (blocked), use fallback or try next model
+                console.warn("Empty response from " + SELECTED_MODEL);
+                if(fallback) addBot(fallback); 
+                else {
+                    // Critical failure on this model, switch?
+                    // For now, just show friendly error
+                    addBot("Oops, I got confused! 🙈");
+                }
                 status.innerText = "● Online";
             }
         } catch(e) { 
-            if(fallback) addBot(fallback); else status.innerText = "Error"; 
+            if(fallback) addBot(fallback); 
+            else status.innerText = "Error"; 
         }
     }
 </script>
