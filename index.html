@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Karishma: Voice Enabled</title>
+<title>Karishma: Fixed</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎀</text></svg>">
 
 <style>
@@ -46,48 +46,46 @@
 
     /* ================= WORLD OBJECTS ================= */
     
-    /* Sun & Moon */
+    /* Sun & Moon (Behind Mountains) */
     .celestial { position: absolute; width: 70px; height: 70px; border-radius: 50%; left: 50%; top: 110%; transition: 1s; z-index: 1; cursor: pointer; }
     #sun { background: radial-gradient(circle, #fff, #ffd700); box-shadow: 0 0 60px 20px rgba(255, 215, 0, 0.6); }
     #moon { background: radial-gradient(#fff, #ccc); box-shadow: 0 0 30px #fff; }
 
-    /* Mountains (SOLID - Fixes Transparency Issue) */
+    /* Mountains (Solid) */
     .mountains { position: absolute; bottom: 25%; width: 100%; z-index: 2; pointer-events: none; }
-    .mtn { position: absolute; bottom: 0; width: 0; height: 0; border-left: 120px solid transparent; border-right: 120px solid transparent; border-bottom: 200px solid #2c3e50; } /* Solid Color */
+    .mtn { position: absolute; bottom: 0; width: 0; height: 0; border-left: 120px solid transparent; border-right: 120px solid transparent; border-bottom: 200px solid #2c3e50; } 
     .m1 { left: -50px; bottom: -20px; border-bottom-color: #3f51b5; z-index: 2; }
     .m2 { right: -30px; bottom: -10px; border-width: 0 180px 280px 180px; border-bottom-color: #303f9f; z-index: 1; }
 
     /* Ground */
     .ground { position: absolute; bottom: 0; width: 100%; height: 28%; background: linear-gradient(#66bb6a, #2e7d32); z-index: 3; cursor: pointer; }
     
-    /* Road (Fixed Layout) */
+    /* Road */
     .road {
         position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
-        width: 120px; /* Narrower to avoid pond */
-        height: 28%; background: #555;
+        width: 120px; height: 28%; background: #555;
         clip-path: polygon(25% 0, 75% 0, 100% 100%, 0% 100%); z-index: 4; cursor: pointer;
     }
     .road::after { content: ''; position: absolute; left: 48%; width: 4%; height: 100%; background: dashed #fff; }
 
-    /* Pond (Moved away from road) */
+    /* Pond (Separated) */
     .pond {
-        position: absolute; bottom: 5%; right: 2%; /* Pushed to edge */
-        width: 110px; height: 40px;
+        position: absolute; bottom: 5%; right: 2%; width: 110px; height: 40px;
         background: rgba(33, 150, 243, 0.8); border-radius: 50%;
         border: 2px solid rgba(255,255,255,0.5); z-index: 5;
         box-shadow: inset 0 0 20px rgba(0,0,100,0.2); cursor: pointer;
     }
 
-    /* Bushes (Small Trees) */
+    /* Bushes */
     .bush {
         position: absolute; bottom: 15%; width: 40px; height: 30px;
         background: #1b5e20; border-radius: 50% 50% 0 0; z-index: 6;
-        box-shadow: inset -5px -5px 10px rgba(0,0,0,0.3); pointer-events: none;
+        pointer-events: none;
     }
-    .b1 { left: 15%; } /* Left Bush */
-    .b2 { right: 25%; } /* Right Bush */
+    .b1 { left: 15%; } 
+    .b2 { right: 25%; } 
 
-    /* Trees (Far Edges) */
+    /* Trees */
     .tree { position: absolute; bottom: 20%; z-index: 5; width: 60px; height: 120px; cursor: pointer; }
     .trunk { width: 10px; height: 40px; background: #5d4037; margin: 80px auto 0; }
     .leaves { 
@@ -96,7 +94,7 @@
         box-shadow: inset -5px -5px 10px rgba(0,0,0,0.2);
     }
 
-    /* Birds (Flapping Opposite) */
+    /* Birds */
     .css-bird { position: absolute; width: 30px; height: 10px; z-index: 10; animation: flyAcross 25s linear infinite; top: 15%; }
     .wing { width: 15px; height: 8px; position: absolute; top: 0; background: #222; border-radius: 50% 50% 0 0; }
     .wing-l { left: 0; transform-origin: right bottom; animation: flapL 0.3s infinite alternate; }
@@ -224,13 +222,13 @@
 </div>
 
 <script>
-    // --- 1. API LOGIC (LOCKED) ---
+    // --- 1. API LOGIC (REPAIRED) ---
     let API_KEY = localStorage.getItem("gemini_key_auto_detect"); 
     let SELECTED_MODEL = ""; 
     const SYSTEM_PROMPT = `You are Karishma AI. Creator: Abhik Dutta. 
     Location: Kalain/Silchar area.
     Personality: Cute futuristic robot girl. Sassy, helpful, uses emojis.
-    Task: Detect user's language (Bengali, Hindi, English, etc) and reply in that language.
+    Task: Detect user's language (Bengali, Hindi, English) and reply in that language.
     Keep replies short (max 20 words).`;
     let history = [];
 
@@ -239,7 +237,7 @@
         if (!API_KEY) {
             document.getElementById("key-modal").style.display = "flex";
         } else {
-            addBot("System Online! Voice Ready. 🎀");
+            addBot("System Online! Voice Active. 🎀");
             await autoDetectModel();
         }
         updateSky();
@@ -247,16 +245,21 @@
         setInterval(updateSky, 60000);
     };
 
-    // --- 3. SPEECH SYNTHESIS (NEW) ---
+    // --- 3. SPEECH SYNTHESIS (FIXED) ---
     function speak(text) {
-        // Remove emojis for cleaner speech
+        if (!window.speechSynthesis) return;
+        
+        // Cancel previous speech to stop overlap
+        window.speechSynthesis.cancel();
+
+        // Clean text (remove emojis for reading)
         const cleanText = text.replace(/[\u{1F600}-\u{1F6FF}]/gu, ''); 
         
         const utterance = new SpeechSynthesisUtterance(cleanText);
-        utterance.pitch = 1.2; // Cute pitch
-        utterance.rate = 1.1; // Slightly faster
+        utterance.pitch = 1.3; // Cute pitch
+        utterance.rate = 1.1; 
         
-        // Try to pick a female voice
+        // Try to find a female voice
         const voices = window.speechSynthesis.getVoices();
         const femaleVoice = voices.find(v => v.name.includes('Female') || v.name.includes('Google US English'));
         if(femaleVoice) utterance.voice = femaleVoice;
@@ -291,7 +294,7 @@
         try {
             const res = await fetch("https://api.open-meteo.com/v1/forecast?latitude=24.83&longitude=92.77&current_weather=true");
             const data = await res.json();
-            w.innerText = `📍 Silchar: ${data.current_weather.temperature}°C`;
+            w.innerText = `📍 Kalain: ${data.current_weather.temperature}°C`;
         } catch(e) { w.innerText = "📍 Weather Offline"; }
     }
 
@@ -302,7 +305,7 @@
             localStorage.setItem("gemini_key_auto_detect", input);
             API_KEY = input;
             document.getElementById("key-modal").style.display = "none";
-            addBot("Key Saved! Detecting Model... 📡");
+            addBot("Key Saved! Detecting... 📡");
             autoDetectModel();
         } else { alert("Invalid Key!"); }
     }
@@ -336,7 +339,7 @@
         const r = document.getElementById("karishma");
         let prompt = "";
         
-        r.classList.add("jump"); // Generic animation
+        r.classList.add("jump"); 
         setTimeout(() => r.classList.remove("jump"), 500);
 
         if(type === 'head') prompt = "User pats your head.";
@@ -356,9 +359,7 @@
     function addBot(t) {
         const d = document.createElement("div"); d.className = "msg b-msg"; d.innerText = t;
         const c = document.getElementById("chat"); c.appendChild(d); c.scrollTop = c.scrollHeight;
-        
-        // Trigger Voice
-        speak(t);
+        speak(t); // Trigger Voice
     }
     function addUser(t) {
         const d = document.createElement("div"); d.className = "msg u-msg"; d.innerText = t;
@@ -378,14 +379,28 @@
         let msgs = [...history];
         msgs.push({role: "user", parts: [{text: `[TIME: ${time}] ${hidden ? '[ACTION]: ' : ''}${text}`}]});
 
+        // 1. ADD SAFETY SETTINGS
+        const safetySettings = [
+            { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
+            { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
+            { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" },
+            { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" }
+        ];
+
         try {
             const url = `https://generativelanguage.googleapis.com/v1beta/models/${SELECTED_MODEL}:generateContent?key=${API_KEY}`;
             const res = await fetch(url, {
-                method: "POST", headers: {"Content-Type": "application/json"},
-                body: JSON.stringify({ contents: [{role: "user", parts: [{text: SYSTEM_PROMPT}]}, ...msgs] })
+                method: "POST", 
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({ 
+                    contents: [{role: "user", parts: [{text: SYSTEM_PROMPT}]}, ...msgs],
+                    safetySettings: safetySettings 
+                })
             });
             const data = await res.json();
-            if (data.candidates) {
+            
+            // 2. CHECK FOR CANDIDATES (Avoid "Stuck" Bug)
+            if (data.candidates && data.candidates.length > 0) {
                 const reply = data.candidates[0].content.parts[0].text;
                 if(!hidden) addBot(reply);
                 else if(!text.includes("User")) addBot(reply);
@@ -395,8 +410,16 @@
                     history.push({role: "model", parts: [{text: reply}]});
                 }
                 status.innerText = "● Online";
+            } else {
+                // Safety block handling
+                addBot("⚠️ I cannot answer that right now (Safety Block).");
+                status.innerText = "● Online";
             }
-        } catch(e) { status.innerText = "Error"; }
+        } catch(e) { 
+            console.error(e);
+            addBot("⚠️ Network Error.");
+            status.innerText = "Error"; 
+        }
     }
 </script>
 
