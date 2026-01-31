@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Karishma AI: Master</title>
+<title>Karishma AI: Final</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎀</text></svg>">
 
 <style>
@@ -22,8 +22,7 @@
     * { box-sizing: border-box; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
     body { margin: 0; padding: 0; width: 100vw; height: 100vh; height: 100dvh; overflow: hidden; background: #000; font-family: 'Segoe UI', system-ui, sans-serif; display: flex; flex-direction: column; }
 
-    /* ================= LAYOUT ================= */
-    /* Visuals take top 60% */
+    /* ================= LAYOUT (Mobile Optimized) ================= */
     #visual-area { 
         flex: 6; position: relative; overflow: hidden; 
         background: var(--sky-day); transition: background 2s ease; 
@@ -31,7 +30,6 @@
     }
     #visual-area.night { background: var(--sky-night); }
     
-    /* Chat takes bottom 40% */
     #chat-area { 
         flex: 4; background: var(--glass); 
         display: flex; flex-direction: column; 
@@ -48,12 +46,12 @@
 
     /* ================= WORLD OBJECTS ================= */
     
-    /* Sky - Sun/Moon behind mountains */
+    /* Sun & Moon */
     .celestial { position: absolute; width: 70px; height: 70px; border-radius: 50%; left: 50%; top: 110%; transition: 1s; z-index: 1; cursor: pointer; }
     #sun { background: radial-gradient(circle, #fff, #ffd700); box-shadow: 0 0 60px 20px rgba(255, 215, 0, 0.6); }
     #moon { background: radial-gradient(#fff, #ccc); box-shadow: 0 0 30px #fff; }
 
-    /* Mountains (Solid - No Transparency) */
+    /* Mountains (Solid & Opaque) */
     .mountains { position: absolute; bottom: 25%; width: 100%; z-index: 2; pointer-events: none; }
     .mtn { position: absolute; bottom: 0; width: 0; height: 0; border-left: 120px solid transparent; border-right: 120px solid transparent; border-bottom: 200px solid #2c3e50; } 
     .m1 { left: -50px; bottom: -20px; border-bottom-color: #3f51b5; z-index: 2; }
@@ -70,7 +68,7 @@
     }
     .road::after { content: ''; position: absolute; left: 48%; width: 4%; height: 100%; background: dashed #fff; }
 
-    /* Pond (Right Side - Separated) */
+    /* Pond (Separated) */
     .pond {
         position: absolute; bottom: 5%; right: 3%; width: 110px; height: 40px;
         background: rgba(33, 150, 243, 0.8); border-radius: 50%;
@@ -78,34 +76,25 @@
         box-shadow: inset 0 0 20px rgba(0,0,100,0.2); cursor: pointer;
     }
 
-    /* Nature Details */
-    .bush {
-        position: absolute; bottom: 15%; width: 40px; height: 30px;
-        background: #1b5e20; border-radius: 50% 50% 0 0; z-index: 5; pointer-events: none;
-    }
+    /* Nature */
+    .bush { position: absolute; bottom: 15%; width: 40px; height: 30px; background: #1b5e20; border-radius: 50% 50% 0 0; z-index: 5; pointer-events: none; }
     .b1 { left: 15%; } .b2 { right: 25%; } 
-
     .tree { position: absolute; bottom: 20%; z-index: 5; width: 60px; height: 120px; cursor: pointer; }
     .trunk { width: 10px; height: 40px; background: #5d4037; margin: 80px auto 0; }
-    .leaves { 
-        width: 60px; height: 90px; background: #2e7d32; border-radius: 50%; 
-        position: absolute; top: 0; left: 0; box-shadow: inset -5px -5px 10px rgba(0,0,0,0.2);
-    }
+    .leaves { width: 60px; height: 90px; background: #2e7d32; border-radius: 50%; position: absolute; top: 0; left: 0; box-shadow: inset -5px -5px 10px rgba(0,0,0,0.2); }
 
-    /* REALISTIC BIRDS (Opposite Flapping) */
+    /* REALISTIC BIRDS (CSS Only - No Sticks) */
     .css-bird { position: absolute; width: 30px; height: 10px; z-index: 10; animation: flyAcross 25s linear infinite; top: 15%; }
     .wing { width: 15px; height: 8px; position: absolute; top: 0; background: #222; border-radius: 50% 50% 0 0; }
-    
-    /* Left Wing Flaps Up-Down */
+    /* Flapping Effect */
     .wing-l { left: 0; transform-origin: right bottom; animation: flapL 0.3s infinite alternate ease-in-out; }
-    /* Right Wing Flaps Up-Down */
     .wing-r { right: 0; transform-origin: left bottom; animation: flapR 0.3s infinite alternate ease-in-out; }
     
     @keyframes flyAcross { 0% { left: -10%; transform: translateY(0); } 100% { left: 110%; transform: translateY(-30px); } }
     @keyframes flapL { 0% { transform: rotate(0deg); } 100% { transform: rotate(45deg); } }
     @keyframes flapR { 0% { transform: rotate(0deg); } 100% { transform: rotate(-45deg); } }
 
-    /* ================= ROBOT GIRL ================= */
+    /* ================= ROBOT GIRL (Anime Style) ================= */
     .robot {
         position: absolute; bottom: 15%; left: 50%; transform: translateX(-50%);
         z-index: 20; display: flex; flex-direction: column; align-items: center;
@@ -168,10 +157,8 @@
     
     <div class="mountains"><div class="mtn m1"></div><div class="mtn m2"></div></div>
     <div class="ground" onclick="interact('grass')"></div>
-    
     <div class="road" onclick="interact('road')"></div>
     <div class="pond" onclick="interact('pond')"></div>
-    
     <div class="bush b1"></div><div class="bush b2"></div>
     <div class="tree" style="left:2%" onclick="interact('tree')"><div class="leaves"></div><div class="trunk"></div></div>
     <div class="tree" style="right:2%" onclick="interact('tree')"><div class="leaves"></div><div class="trunk"></div></div>
@@ -181,8 +168,7 @@
 
     <div class="robot" id="karishma">
         <div class="r-head" onclick="interact('head')">
-            <div class="r-hair"></div>
-            <div class="headphone hp-l"></div><div class="headphone hp-r"></div>
+            <div class="r-hair"></div><div class="headphone hp-l"></div><div class="headphone hp-r"></div>
             <div class="r-eyes"><div class="r-eye"></div><div class="r-eye"></div></div>
         </div>
         <div class="r-body" onclick="interact('tummy')">
@@ -203,9 +189,10 @@
 </div>
 
 <script>
-    // --- 1. API LOGIC (LOCKED: Use User's List Method) ---
-    let API_KEY = localStorage.getItem("gemini_key_v9_master"); 
+    // --- 1. CONFIGURATION ---
+    let API_KEY = localStorage.getItem("gemini_key_auto_detect"); 
     let SELECTED_MODEL = ""; 
+    
     const SYSTEM_PROMPT = `You are Karishma AI. Creator: Abhik Dutta. 
     Location: Kalain/Silchar area.
     Personality: Cute futuristic robot girl. Sassy, helpful, uses emojis.
@@ -219,7 +206,7 @@
             document.getElementById("key-modal").style.display = "flex";
         } else {
             addBot("System Online! 🎀");
-            await autoDetectModel(); // Run the user's specific logic
+            await autoDetectModel(); // Using YOUR preferred logic
         }
         updateSky();
         fetchWeather();
@@ -265,20 +252,22 @@
         } catch(e) { w.innerText = "📍 Weather Offline"; }
     }
 
-    // --- 5. API FUNCTIONS (User's Verified Logic) ---
+    // --- 5. YOUR VERIFIED API LOGIC ---
     function saveKey() {
         const input = document.getElementById("apiKeyInput").value.trim();
         if (input.startsWith("AIza")) {
-            localStorage.setItem("gemini_key_v9_master", input);
+            localStorage.setItem("gemini_key_auto_detect", input);
             API_KEY = input;
             document.getElementById("key-modal").style.display = "none";
             addBot("Key Saved! Detecting Model... 📡");
+            initVisuals();
             autoDetectModel();
         } else { alert("Invalid Key!"); }
     }
 
     async function autoDetectModel() {
         try {
+            // Using the logic you provided that works:
             const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${API_KEY}`);
             const data = await res.json();
             if(!res.ok) throw new Error("Key Error");
@@ -297,35 +286,37 @@
             }
         } catch(e) {
             console.error(e);
-            addBot("⚠️ Error finding model. Check Key/Network.");
+            addBot("⚠️ Error finding model. Check Key.");
             document.getElementById("status").innerText = "Error";
         }
     }
 
     function clearKey() {
         if(confirm("Reset Key?")) {
-            localStorage.removeItem("gemini_key_v9_master");
+            localStorage.removeItem("gemini_key_auto_detect");
             location.reload();
         }
     }
 
+    function initVisuals() { /* Placeholder for structure matching */ }
+
     // --- 6. INTERACTION ---
     function interact(type) {
         const r = document.getElementById("karishma");
-        let prompt = ""; let fallback = "";
+        let prompt = "";
         r.classList.add("jump"); setTimeout(() => r.classList.remove("jump"), 500);
 
-        if(type === 'head') { prompt = "User pats your head."; fallback = "Hehe! 😽"; }
-        else if(type === 'tummy') { prompt = "User pokes your tummy."; fallback = "Tickles! 🤭"; }
-        else if(type === 'hand') { prompt = "User holds your hand."; fallback = "Friends! 🤝"; }
-        else if(type === 'pond') { prompt = "User touches the pond."; fallback = "Splash! 💧"; }
-        else if(type === 'grass') { prompt = "User touches the grass."; fallback = "Green! 🌿"; }
-        else if(type === 'road') { prompt = "User touches the road."; fallback = "Let's go! 🚶‍♀️"; }
-        else if(type === 'sun') { prompt = "User points at the Sun."; fallback = "Bright! ☀️"; }
-        else if(type === 'moon') { prompt = "User points at the Moon."; fallback = "Sleepy? 🌙"; }
-        else if(type === 'tree') { prompt = "User touches a tree."; fallback = "Nature! 🌳"; }
+        if(type === 'head') prompt = "User pets your head."; 
+        else if(type === 'tummy') prompt = "User taps interface."; 
+        else if(type === 'hand') prompt = "User holds hand."; 
+        else if(type === 'pond') prompt = "User touches water."; 
+        else if(type === 'grass') prompt = "User touches grass."; 
+        else if(type === 'road') prompt = "User on road."; 
+        else if(type === 'sun') prompt = "User points at Sun."; 
+        else if(type === 'moon') prompt = "User points at Moon."; 
+        else if(type === 'tree') prompt = "User touches tree."; 
 
-        callAI(prompt, true, fallback);
+        callAI(prompt, true);
     }
 
     // --- 7. CHAT LOGIC ---
@@ -343,7 +334,7 @@
         if(!v) return; addUser(v); i.value = ""; callAI(v, false);
     }
 
-    async function callAI(text, hidden, fallback) {
+    async function callAI(text, hidden) {
         if(!SELECTED_MODEL) return;
         const status = document.getElementById("status");
         if(!hidden) status.innerText = "Thinking...";
@@ -352,6 +343,7 @@
         let msgs = [...history];
         msgs.push({role: "user", parts: [{text: `[TIME: ${time}] ${hidden ? '[ACTION]: ' : ''}${text}`}]});
 
+        // VITAL FIX: Safety Settings added here to prevent "I can't answer" error
         const safetySettings = [
             { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
             { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
@@ -381,12 +373,11 @@
                 }
                 status.innerText = "● Online";
             } else {
-                if(fallback) addBot(fallback); else addBot("I can't answer that right now! 🙈");
+                addBot("I can't answer that right now! 🙈 (Safety Block)");
                 status.innerText = "● Online";
             }
         } catch(e) { 
-            if(fallback) addBot(fallback); 
-            else status.innerText = "Error"; 
+            status.innerText = "Error"; 
         }
     }
 </script>
