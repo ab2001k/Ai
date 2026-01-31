@@ -3,1064 +3,307 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Karishma: Future Hybrid</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎀</text></svg>">
-
+<title>Karishma AI: Mobile Hybrid</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎀</text></svg>">
 <style>
     /* ================= CORE VARIABLES ================= */
     :root {
-        --sky-day: linear-gradient(180deg, #87CEEB 0%, #B0E2FF 50%, #FFE4B5 100%);
-        --sky-night: linear-gradient(180deg, #0a0e27 0%, #1a1a3e 40%, #2a2a4e 100%);
-        --robot-skin: #ffe5ec;
-        --robot-neon: #ff0055;
-        --glass-panel: rgba(255, 255, 255, 0.9);
+        --sky-day: linear-gradient(180deg, #4facfe, #00f2fe);
+        --sky-night: linear-gradient(180deg, #0f0c29, #302b63, #24243e);
+        --robot-skin: #fff0f5; 
+        --robot-neon: #ff00cc;
+        --glass: rgba(255, 255, 255, 0.95);
         --accent: #ff4081;
     }
 
-    * { box-sizing: border-box; }
-    body { margin: 0; padding: 0; width: 100vw; height: 100vh; overflow: hidden; background: #000; font-family: 'Segoe UI', system-ui, sans-serif; display: flex; flex-direction: row; }
+    * { box-sizing: border-box; touch-action: manipulation; }
+    body { margin: 0; padding: 0; width: 100vw; height: 100vh; overflow: hidden; background: #000; font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; }
 
-    /* ================= LAYOUT ================= */
+    /* ================= MOBILE LAYOUT ================= */
+    /* Visuals on TOP (55%), Chat on BOTTOM (45%) */
     #visual-area { 
-        flex: 1; position: relative; overflow: hidden; 
-        background: var(--sky-day); 
-        transition: background 3s ease; 
-        z-index: 1; 
+        flex: 55; position: relative; overflow: hidden; 
+        background: var(--sky-day); transition: background 2s ease; 
+        width: 100%; border-bottom: 2px solid #fff;
     }
     #visual-area.night { background: var(--sky-night); }
     
     #chat-area { 
-        width: 380px; background: var(--glass-panel); backdrop-filter: blur(20px); 
-        display: flex; flex-direction: column; border-left: 1px solid rgba(255,255,255,0.5); 
-        z-index: 100; box-shadow: -8px 0 40px rgba(0,0,0,0.15); 
+        flex: 45; background: var(--glass); 
+        display: flex; flex-direction: column; 
+        width: 100%; box-shadow: 0 -5px 20px rgba(0,0,0,0.2); 
+        z-index: 100;
     }
+
+    /* Desktop Overrides (Side by Side) */
+    @media (min-width: 800px) { 
+        body { flex-direction: row; } 
+        #visual-area { flex: 60; height: 100%; border-bottom: none; } 
+        #chat-area { flex: 40; height: 100%; border-left: 2px solid #fff; } 
+    }
+
+    /* ================= WORLD OBJECTS (CSS ONLY) ================= */
     
-    /* Mobile Responsive */
-    @media (max-width: 850px) { 
-        body { flex-direction: column; } 
-        #visual-area { height: 60%; flex: none; } 
-        #chat-area { width: 100%; flex: 1; border-left: none; border-top: 1px solid #ccc; } 
-    }
+    /* Mountains */
+    .mountains { position: absolute; bottom: 25%; width: 100%; z-index: 2; pointer-events: none; }
+    .mtn { position: absolute; bottom: 0; width: 0; height: 0; border-left: 100px solid transparent; border-right: 100px solid transparent; border-bottom: 150px solid rgba(0,0,0,0.2); }
+    .m1 { left: -50px; bottom: -20px; border-bottom-color: #6a1b9a; opacity: 0.5; }
+    .m2 { right: -20px; bottom: -10px; border-width: 0 150px 200px 150px; border-bottom-color: #4a148c; opacity: 0.4; }
 
-    /* ================= ENHANCED SKY ELEMENTS ================= */
+    /* Ground */
+    .ground { position: absolute; bottom: 0; width: 100%; height: 28%; background: linear-gradient(#66bb6a, #2e7d32); z-index: 3; }
     
-    /* Clouds */
-    .cloud {
-        position: absolute;
-        background: rgba(255, 255, 255, 0.7);
-        border-radius: 100px;
-        animation: cloudFloat 60s linear infinite;
-        z-index: 3;
-        filter: blur(1px);
-    }
-    .cloud::before, .cloud::after {
-        content: '';
-        position: absolute;
-        background: rgba(255, 255, 255, 0.7);
-        border-radius: 100px;
-    }
-    .cloud::before { width: 50px; height: 50px; top: -25px; left: 10px; }
-    .cloud::after { width: 60px; height: 60px; top: -30px; right: 10px; }
-    @keyframes cloudFloat {
-        from { transform: translateX(-200px); }
-        to { transform: translateX(calc(100vw + 200px)); }
-    }
-
-    /* Stars */
-    .star {
-        position: absolute;
-        width: 2px;
-        height: 2px;
-        background: white;
-        border-radius: 50%;
-        box-shadow: 0 0 3px white;
-        opacity: 0;
-        z-index: 2;
-    }
-    #visual-area.night .star {
-        animation: twinkle 3s infinite;
-    }
-    @keyframes twinkle {
-        0%, 100% { opacity: 0; transform: scale(1); }
-        50% { opacity: 1; transform: scale(1.5); }
-    }
-
-    /* Sun/Moon */
-    .celestial-body {
-        position: absolute; 
-        width: 90px; 
-        height: 90px; 
-        border-radius: 50%;
-        left: 50%; 
-        top: 110%;
-        transform: translate(-50%, -50%);
-        transition: all 1.5s ease-in-out;
-        pointer-events: none;
-        z-index: 4;
-    }
-    .sun { 
-        background: radial-gradient(circle, #FDB813, #FF8C00); 
-        box-shadow: 0 0 80px rgba(253, 184, 19, 0.8), 0 0 120px rgba(253, 184, 19, 0.4);
-    }
-    .moon { 
-        background: radial-gradient(circle, #F4F6F0 30%, #E8EADD 100%); 
-        box-shadow: 0 0 60px rgba(244, 246, 240, 0.6), inset -10px -10px 20px rgba(200, 200, 200, 0.3);
-    }
-
-    /* Enhanced Rain */
-    .rain {
-        position: absolute; 
-        width: 2px; 
-        background: linear-gradient(transparent, rgba(174, 194, 224, 0.8));
-        top: -100vh;
-        animation: rainDrop 0.8s linear infinite;
-        display: none;
-        z-index: 10;
-    }
-    @keyframes rainDrop { 
-        0% { transform: translateY(0); } 
-        100% { transform: translateY(100vh); } 
-    }
-    #visual-area.rainy .rain { display: block; }
-
-    /* ================= ENHANCED LANDSCAPE ================= */
-    
-    /* Ground with grass texture */
-    .ground { 
-        position: absolute; 
-        bottom: 0; 
-        width: 100%; 
-        height: 35%; 
-        background: linear-gradient(180deg, #88cc88 0%, #5fa35f 50%, #3d7a3d 100%);
-        clip-path: ellipse(160% 100% at 50% 100%); 
-        z-index: 2;
-    }
-    .ground::before {
-        content: '';
-        position: absolute;
-        width: 100%;
-        height: 100%;
-        background-image: 
-            repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px);
-        opacity: 0.3;
-    }
-
-    /* Improved Road */
+    /* CSS Road */
     .road {
-        position: absolute; 
-        bottom: 0; 
-        left: 50%; 
-        transform: translateX(-50%);
-        width: 220px; 
-        height: 35%; 
-        background: linear-gradient(180deg, #666 0%, #444 100%);
-        clip-path: polygon(25% 0, 75% 0, 100% 100%, 0% 100%); 
-        z-index: 3;
-        box-shadow: inset 0 0 30px rgba(0,0,0,0.3);
+        position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
+        width: 120px; height: 28%; background: #555;
+        clip-path: polygon(20% 0, 80% 0, 100% 100%, 0% 100%); z-index: 4;
     }
-    .road::before {
-        content: '';
-        position: absolute;
-        width: 6px;
-        height: 100%;
-        background: repeating-linear-gradient(0deg, #FDB813 0px, #FDB813 30px, transparent 30px, transparent 50px);
-        left: 50%;
-        transform: translateX(-50%);
-        opacity: 0.8;
-    }
+    .road::after { content: ''; position: absolute; left: 48%; width: 4%; height: 100%; background: dashed #fff; }
 
-    /* Enhanced Pond with reflection */
+    /* CSS Pond */
     .pond {
-        position: absolute; 
-        bottom: 8%; 
-        right: 8%; 
-        width: 200px; 
-        height: 80px;
-        background: radial-gradient(ellipse at center, rgba(100, 181, 246, 0.7), rgba(33, 150, 243, 0.5));
-        border-radius: 50%;
-        box-shadow: 
-            inset 0 0 30px rgba(0, 100, 150, 0.3),
-            0 5px 15px rgba(33, 150, 243, 0.4);
-        z-index: 4;
-        border: 3px solid rgba(255, 255, 255, 0.3);
-        animation: ripple 4s ease-in-out infinite;
-        cursor: pointer;
-        transition: transform 0.2s;
-    }
-    .pond:hover { transform: scale(1.05); }
-    @keyframes ripple { 
-        0%, 100% { transform: scale(1); opacity: 0.7; } 
-        50% { transform: scale(1.03); opacity: 0.9; } 
+        position: absolute; bottom: 5%; right: 5%; width: 140px; height: 50px;
+        background: rgba(33, 150, 243, 0.6); border-radius: 50%;
+        border: 2px solid rgba(255,255,255,0.5); z-index: 5;
+        box-shadow: inset 0 0 20px rgba(0,0,100,0.2);
     }
 
-    /* Realistic Trees */
-    .tree { 
-        position: absolute; 
-        bottom: 18%; 
-        z-index: 5; 
-        cursor: pointer; 
-        transition: transform 0.3s ease;
-        filter: drop-shadow(5px 5px 10px rgba(0,0,0,0.2));
+    /* CSS Birds (V-Shape animation) */
+    .css-bird {
+        position: absolute; width: 20px; height: 10px; z-index: 10;
+        animation: flyAcross 20s linear infinite; top: 20%;
     }
-    .tree:hover { transform: scale(1.05) translateY(-5px); }
-    .tree:active { transform: scale(0.95); }
+    .wing-l, .wing-r {
+        width: 10px; height: 2px; background: #333; position: absolute; top: 5px;
+        animation: flap 0.3s infinite alternate;
+    }
+    .wing-l { left: 0; transform-origin: right center; }
+    .wing-r { right: 0; transform-origin: left center; }
     
-    .trunk { 
-        width: 20px; 
-        height: 120px; 
-        background: linear-gradient(90deg, #5D4037, #6D4C41, #5D4037);
-        margin: 0 auto; 
-        border-radius: 5px;
-        box-shadow: inset -3px 0 5px rgba(0,0,0,0.3);
-        position: relative;
-    }
-    .trunk::after {
-        content: '';
-        position: absolute;
-        width: 100%;
-        height: 100%;
-        background: repeating-linear-gradient(0deg, transparent 0px, rgba(0,0,0,0.1) 15px, transparent 16px);
-    }
-    
-    .foliage { 
-        position: absolute; 
-        bottom: 70px; 
-        left: 50%; 
-        transform: translateX(-50%);
-        width: 120px; 
-        height: 120px; 
-        background: radial-gradient(circle, #4CAF50, #388E3C);
-        border-radius: 50%;
-        box-shadow: 
-            inset -15px -15px 30px rgba(0,0,0,0.3),
-            0 10px 20px rgba(0,0,0,0.2);
-    }
-    .foliage::before, .foliage::after {
-        content: '';
-        position: absolute;
-        background: radial-gradient(circle, #66BB6A, #43A047);
-        border-radius: 50%;
-    }
-    .foliage::before { width: 90px; height: 90px; top: -20px; left: -10px; opacity: 0.8; }
-    .foliage::after { width: 80px; height: 80px; top: -10px; right: -15px; opacity: 0.7; }
+    @keyframes flyAcross { 0% { left: -10%; transform: translateY(0); } 100% { left: 110%; transform: translateY(-20px); } }
+    @keyframes flap { 0% { transform: rotate(0deg); } 100% { transform: rotate(30deg); } }
 
-    /* Enhanced Birds */
-    .bird { 
-        position: absolute; 
-        font-size: 24px; 
-        z-index: 8; 
-        animation: birdFly 25s linear infinite;
-        filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.3));
-    }
-    .bird:nth-child(2) { animation-delay: 8s; top: 15%; }
-    .bird:nth-child(3) { animation-delay: 16s; top: 12%; font-size: 20px; }
-    @keyframes birdFly { 
-        0% { left: -60px; transform: translateY(0); }
-        25% { transform: translateY(-20px); }
-        50% { transform: translateY(0); }
-        75% { transform: translateY(15px); }
-        100% { left: 110%; transform: translateY(0); } 
-    }
+    /* Sky Bodies */
+    .celestial { position: absolute; width: 60px; height: 60px; border-radius: 50%; left: 50%; top: 110%; transition: 1s; pointer-events: none; }
+    #sun { background: radial-gradient(#ffd700, #ff8c00); box-shadow: 0 0 40px #ff8c00; }
+    #moon { background: radial-gradient(#fff, #ccc); box-shadow: 0 0 20px #fff; }
 
-    /* Beautiful House */
-    .house-group { 
-        position: absolute; 
-        bottom: 22%; 
-        left: 10%; 
-        z-index: 5; 
-        cursor: pointer;
-        transition: transform 0.3s;
-        filter: drop-shadow(8px 8px 15px rgba(0,0,0,0.3));
-    }
-    .house-group:hover { transform: scale(1.05); }
-    .house-group:active { transform: scale(0.98); }
-    
-    .house-body { 
-        width: 140px; 
-        height: 100px; 
-        background: linear-gradient(135deg, #FFF9E6, #FFFBEA);
-        border: 3px solid #8D6E63; 
-        position: relative;
-        box-shadow: inset -5px -5px 15px rgba(0,0,0,0.1);
+    /* ================= ROBOT GIRL (Anime Style CSS) ================= */
+    .robot {
+        position: absolute; bottom: 15%; left: 50%; transform: translateX(-50%);
+        z-index: 20; display: flex; flex-direction: column; align-items: center;
+        transition: transform 0.2s; filter: drop-shadow(0 5px 15px rgba(255,0,100,0.3));
     }
     
-    .house-roof { 
-        position: absolute; 
-        top: -60px; 
-        left: -15px; 
-        width: 0; 
-        height: 0;
-        border-left: 85px solid transparent; 
-        border-right: 85px solid transparent; 
-        border-bottom: 65px solid #C62828;
-        filter: drop-shadow(0 -3px 8px rgba(0,0,0,0.3));
-    }
-    .house-roof::after {
-        content: '';
-        position: absolute;
-        width: 30px;
-        height: 40px;
-        background: #8D6E63;
-        left: -15px;
-        top: -30px;
-        border: 2px solid #6D4C41;
-    }
-    
-    .window { 
-        width: 35px; 
-        height: 35px; 
-        background: linear-gradient(135deg, #B3E5FC, #81D4FA);
-        position: absolute; 
-        top: 25px; 
-        right: 20px; 
-        border: 3px solid #5D4037; 
-        box-shadow: inset 0 0 10px rgba(0,100,150,0.3);
-    }
-    .window::before, .window::after {
-        content: '';
-        position: absolute;
-        background: #5D4037;
-    }
-    .window::before { width: 100%; height: 2px; top: 50%; transform: translateY(-50%); }
-    .window::after { width: 2px; height: 100%; left: 50%; transform: translateX(-50%); }
-    
-    .door {
-        position: absolute;
-        bottom: 0;
-        left: 20px;
-        width: 40px;
-        height: 60px;
-        background: linear-gradient(180deg, #8D6E63, #6D4C41);
-        border: 2px solid #5D4037;
-        border-radius: 5px 5px 0 0;
-    }
-    .door::after {
-        content: '';
-        position: absolute;
-        width: 6px;
-        height: 6px;
-        background: #FFD700;
-        border-radius: 50%;
-        right: 8px;
-        top: 50%;
-    }
-
-    /* ================= ENHANCED KARISHMA ROBOT ================= */
-    .robot-wrapper {
-        position: absolute; 
-        bottom: 20%; 
-        left: 50%; 
-        transform: translateX(-50%);
-        z-index: 20; 
-        display: flex; 
-        flex-direction: column; 
-        align-items: center;
-        filter: drop-shadow(0 5px 20px rgba(255, 0, 85, 0.3));
-        transition: transform 0.3s ease;
-    }
-
-    /* Improved Head */
+    /* Head */
     .r-head {
-        width: 100px; 
-        height: 110px; 
-        background: linear-gradient(135deg, var(--robot-skin), #ffd9e8);
-        border-radius: 45px 45px 35px 35px; 
-        position: relative; 
-        z-index: 2;
-        border: 3px solid rgba(255, 192, 203, 0.5);
-        overflow: visible;
-        cursor: pointer;
-        box-shadow: 
-            inset -8px -8px 20px rgba(255, 105, 180, 0.1),
-            0 5px 15px rgba(0,0,0,0.1);
-        transition: transform 0.2s;
+        width: 90px; height: 90px; background: var(--robot-skin);
+        border-radius: 40px 40px 35px 35px; position: relative; z-index: 2;
+        border: 2px solid #ffcae0; cursor: pointer;
     }
-    .r-head:hover { transform: scale(1.05); }
-
-    /* Hair with strands */
-    .r-hair-top {
-        position: absolute; 
-        top: -5px; 
-        left: -3px;
-        width: 106%; 
-        height: 45px;
-        background: linear-gradient(180deg, #2a2a2a, #1a1a1a);
-        border-radius: 45px 45px 0 0; 
-        z-index: 3;
-        box-shadow: 0 3px 10px rgba(0,0,0,0.3);
+    /* Hair */
+    .r-hair {
+        position: absolute; top: -5px; width: 104%; left: -2%; height: 40px;
+        background: #333; border-radius: 40px 40px 0 0; z-index: 3;
     }
-    .r-hair-top::before, .r-hair-top::after {
-        content: '';
-        position: absolute;
-        width: 20px;
-        height: 25px;
-        background: #2a2a2a;
-        border-radius: 50%;
-        top: 20px;
+    /* Headphones */
+    .headphone {
+        width: 15px; height: 35px; background: var(--robot-neon);
+        position: absolute; top: 35px; border-radius: 5px; box-shadow: 0 0 10px var(--robot-neon);
     }
-    .r-hair-top::before { left: 10px; }
-    .r-hair-top::after { right: 10px; }
-
-    /* Cute Headphones */
-    .r-headphones {
-        position: absolute; 
-        top: 35px; 
-        width: 115%; 
-        left: -7.5%;
-        height: 25px;
-        display: flex; 
-        justify-content: space-between; 
-        z-index: 4;
-    }
-    .headphone-cup {
-        width: 22px; 
-        height: 40px; 
-        background: linear-gradient(135deg, var(--robot-neon), #cc0044);
-        border-radius: 8px;
-        box-shadow: 
-            0 0 15px var(--robot-neon),
-            inset -3px -3px 8px rgba(0,0,0,0.3);
-        position: relative;
-    }
-    .headphone-cup::before {
-        content: '';
-        width: 12px;
-        height: 12px;
-        background: rgba(255, 255, 255, 0.3);
-        border-radius: 50%;
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-    }
-
-    /* Expressive Eyes */
-    .r-face { 
-        position: absolute; 
-        top: 50px; 
-        width: 100%; 
-        display: flex; 
-        justify-content: center; 
-        gap: 20px; 
-        z-index: 3; 
-    }
+    .hp-l { left: -12px; } .hp-r { right: -12px; }
+    
+    /* Face */
+    .r-eyes { position: absolute; top: 45px; width: 100%; display: flex; justify-content: center; gap: 18px; z-index: 3; }
     .r-eye {
-        width: 24px; 
-        height: 32px; 
-        background: #1a1a1a;
-        border-radius: 50%;
-        position: relative; 
-        animation: naturalBlink 5s infinite;
-        box-shadow: inset 0 2px 5px rgba(0,0,0,0.5);
+        width: 18px; height: 26px; background: #222; border-radius: 50%; position: relative;
+        animation: blink 4s infinite;
     }
-    .r-eye::after { 
-        content:''; 
-        position: absolute; 
-        top: 8px; 
-        right: 7px; 
-        width: 8px; 
-        height: 8px; 
-        background: #fff; 
-        border-radius: 50%;
-        box-shadow: 2px 2px 3px rgba(255,255,255,0.8);
-    }
-    @keyframes naturalBlink { 
-        0%, 47%, 53%, 100% { height: 32px; } 
-        50% { height: 3px; } 
-    }
-
-    /* Rosy Cheeks */
-    .r-blush {
-        position: absolute; 
-        top: 60px; 
-        width: 100%; 
-        display: flex; 
-        justify-content: center; 
-        gap: 50px;
-    }
-    .cheek { 
-        width: 12px; 
-        height: 8px; 
-        background: radial-gradient(circle, #ffb3ba, transparent);
-        border-radius: 50%; 
-        opacity: 0.7;
-        animation: blushPulse 3s ease-in-out infinite;
-    }
-    @keyframes blushPulse {
-        0%, 100% { opacity: 0.7; transform: scale(1); }
-        50% { opacity: 0.9; transform: scale(1.1); }
-    }
-
-    /* Cute Smile */
-    .r-mouth {
-        position: absolute;
-        top: 78px;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 30px;
-        height: 15px;
-        border-bottom: 3px solid #ff69b4;
-        border-radius: 0 0 15px 15px;
-        opacity: 0.8;
-    }
-
-    /* Body with Details */
+    .r-eye::after { content:''; position:absolute; top:5px; right:4px; width:6px; height:6px; background:white; border-radius:50%; }
+    
+    /* Body */
     .r-body {
-        width: 70px; 
-        height: 85px; 
-        background: linear-gradient(135deg, #ffffff, #f5f5f5);
-        margin-top: -8px; 
-        border-radius: 18px; 
-        border: 3px solid rgba(200, 200, 200, 0.5);
-        position: relative; 
-        z-index: 1; 
-        display: flex; 
-        justify-content: center; 
-        align-items: center;
+        width: 55px; height: 70px; background: white;
+        margin-top: -10px; border-radius: 15px; border: 2px solid #ddd;
+        position: relative; z-index: 1; display: flex; justify-content: center; align-items: center;
         cursor: pointer;
-        box-shadow: 
-            inset -5px -5px 15px rgba(0,0,0,0.05),
-            0 5px 15px rgba(0,0,0,0.1);
-        transition: transform 0.2s;
     }
-    .r-body:hover { transform: scale(1.05); }
-
-    /* Glowing Heart Core */
     .r-core {
-        width: 28px; 
-        height: 28px; 
-        background: radial-gradient(circle, var(--robot-neon), #cc0044);
-        border-radius: 50%; 
-        box-shadow: 
-            0 0 20px var(--robot-neon),
-            inset -3px -3px 8px rgba(0,0,0,0.3);
-        animation: heartbeat 2s ease-in-out infinite;
-        position: relative;
-    }
-    .r-core::before {
-        content: '♥';
-        position: absolute;
-        color: white;
-        font-size: 16px;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
+        width: 20px; height: 20px; background: var(--robot-neon); border-radius: 50%;
+        box-shadow: 0 0 15px var(--robot-neon); animation: pulse 2s infinite;
     }
     
-    /* Articulated Arms */
+    /* Limbs */
     .r-arm {
-        width: 18px; 
-        height: 65px; 
-        background: linear-gradient(135deg, #ffffff, #f0f0f0);
-        border: 2.5px solid rgba(200, 200, 200, 0.6);
-        border-radius: 12px; 
-        position: absolute; 
-        top: 30px; 
-        cursor: pointer;
-        box-shadow: 
-            inset -2px -2px 5px rgba(0,0,0,0.05),
-            2px 2px 8px rgba(0,0,0,0.1);
-        transition: transform 0.3s ease;
+        width: 12px; height: 50px; background: white; border: 2px solid #ddd;
+        border-radius: 10px; position: absolute; top: 25px; cursor: pointer;
     }
-    .left-arm { 
-        left: -20px; 
-        transform: rotate(15deg);
-        transform-origin: top center;
-    }
-    .right-arm { 
-        right: -20px; 
-        transform: rotate(-15deg);
-        transform-origin: top center;
-    }
-    .r-arm:hover { transform: rotate(0deg) !important; }
-    .r-arm::after {
-        content: '';
-        position: absolute;
-        bottom: -8px;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 20px;
-        height: 20px;
-        background: var(--robot-skin);
-        border-radius: 50%;
-        border: 2.5px solid rgba(200, 200, 200, 0.6);
-    }
+    .arm-l { left: -15px; transform: rotate(15deg); }
+    .arm-r { right: -15px; transform: rotate(-15deg); }
 
-    /* Animation States */
-    @keyframes heartbeat { 
-        0%, 100% { transform: scale(1); } 
-        50% { transform: scale(1.15); } 
-    }
+    /* Animations */
+    @keyframes blink { 0%,48%,52%,100%{height:26px} 50%{height:2px} }
+    @keyframes pulse { 0%{transform:scale(1)} 50%{transform:scale(1.2)} }
     
-    .wave-left .left-arm {
-        animation: waveLeft 0.6s ease-in-out 3;
-    }
-    .wave-right .right-arm {
-        animation: waveRight 0.6s ease-in-out 3;
-    }
-    @keyframes waveLeft {
-        0%, 100% { transform: rotate(15deg); }
-        50% { transform: rotate(-30deg); }
-    }
-    @keyframes waveRight {
-        0%, 100% { transform: rotate(-15deg); }
-        50% { transform: rotate(30deg); }
-    }
+    /* Interactions */
+    .jump { animation: jumpAnim 0.5s ease 2; }
+    @keyframes jumpAnim { 0%,100%{transform:translateX(-50%) translateY(0)} 50%{transform:translateX(-50%) translateY(-20px)} }
+    .shake { animation: shakeAnim 0.5s ease; }
+    @keyframes shakeAnim { 0%,100%{transform:translateX(-50%)} 25%{transform:translateX(-50%) rotate(-5deg)} 75%{transform:translateX(-50%) rotate(5deg)} }
 
-    .dance { 
-        animation: danceMove 0.5s ease-in-out 4; 
+    /* ================= CHAT UI ================= */
+    .chat-header {
+        padding: 10px 15px; background: #fff; font-weight: bold; font-size: 14px;
+        display: flex; justify-content: space-between; align-items: center;
+        border-bottom: 1px solid #eee;
     }
-    @keyframes danceMove { 
-        0%, 100% { transform: translateX(-50%) rotate(0) translateY(0); } 
-        25% { transform: translateX(-50%) rotate(-8deg) translateY(-10px); } 
-        75% { transform: translateX(-50%) rotate(8deg) translateY(-10px); } 
-    }
-
-    .shy-reaction {
-        animation: shyMove 0.8s ease-in-out;
-    }
-    @keyframes shyMove {
-        0%, 100% { transform: translateX(-50%); }
-        25% { transform: translateX(-50%) scale(0.95) rotate(-5deg); }
-        75% { transform: translateX(-50%) scale(0.95) rotate(5deg); }
-    }
-
-    .happy-jump {
-        animation: happyJump 0.6s ease-in-out 2;
-    }
-    @keyframes happyJump {
-        0%, 100% { transform: translateX(-50%) translateY(0); }
-        50% { transform: translateX(-50%) translateY(-20px); }
-    }
-
-    /* ================= UI ELEMENTS ================= */
-    .weather-widget {
-        position: absolute; 
-        top: 20px; 
-        left: 20px; 
-        background: rgba(0, 0, 0, 0.7); 
-        color: white;
-        padding: 10px 18px; 
-        border-radius: 25px; 
-        font-size: 13px; 
-        z-index: 50;
-        backdrop-filter: blur(10px); 
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-        font-weight: 500;
-    }
-
-    /* Chat Styling */
-    .chat-header { 
-        padding: 18px; 
-        background: linear-gradient(135deg, #fff, #f8f8f8);
-        font-weight: bold; 
-        border-bottom: 2px solid #eee; 
-        display: flex; 
-        justify-content: space-between; 
-        align-items: center;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-    }
-    .chat-header > div:first-child {
-        font-size: 16px;
-        color: #333;
-    }
-    .status-badge { 
-        font-size: 11px; 
-        padding: 5px 12px; 
-        border-radius: 20px; 
-        background: #e8f5e9; 
-        color: #2e7d32; 
-        cursor: pointer;
-        transition: all 0.2s;
-        font-weight: 600;
-    }
-    .status-badge:hover { background: #c8e6c9; transform: scale(1.05); }
+    .badge { font-size: 10px; padding: 4px 8px; border-radius: 10px; background: #e0f2f1; color: #00695c; }
     
     .chat-history { 
-        flex: 1; 
-        overflow-y: auto; 
-        padding: 20px; 
-        display: flex; 
-        flex-direction: column; 
-        gap: 14px;
-        background: linear-gradient(to bottom, #fafafa, #ffffff);
+        flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 10px; 
+        background: #f9f9f9;
     }
-    .chat-history::-webkit-scrollbar { width: 6px; }
-    .chat-history::-webkit-scrollbar-thumb { background: #ddd; border-radius: 10px; }
+    .msg { padding: 10px 14px; border-radius: 18px; font-size: 14px; max-width: 85%; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    .u-msg { align-self: flex-end; background: var(--accent); color: white; border-bottom-right-radius: 2px; }
+    .b-msg { align-self: flex-start; background: white; border: 1px solid #ddd; border-bottom-left-radius: 2px; }
     
-    .msg { 
-        padding: 13px 17px; 
-        border-radius: 20px; 
-        font-size: 14px; 
-        max-width: 85%; 
-        animation: pop 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55); 
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); 
-        word-wrap: break-word;
-        line-height: 1.5;
-    }
-    .u-msg { 
-        align-self: flex-end; 
-        background: linear-gradient(135deg, var(--accent), #e91e63);
-        color: #fff; 
-        border-bottom-right-radius: 4px;
-    }
-    .b-msg { 
-        align-self: flex-start; 
-        background: #fff; 
-        border: 1px solid #e0e0e0; 
-        color: #333; 
-        border-bottom-left-radius: 4px;
-    }
-    @keyframes pop { 
-        from { transform: scale(0.7) translateY(20px); opacity: 0; } 
-        to { transform: scale(1) translateY(0); opacity: 1; } 
-    }
-    
-    .input-area { 
-        padding: 18px; 
-        background: #fff; 
-        border-top: 2px solid #eee; 
-        display: flex; 
-        gap: 12px;
-        box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
-    }
-    input { 
-        flex: 1; 
-        padding: 13px 18px; 
-        border-radius: 25px; 
-        border: 2px solid #e0e0e0; 
-        outline: none;
-        font-size: 14px;
-        transition: border-color 0.3s;
-    }
-    input:focus { border-color: var(--accent); }
-    
-    button { 
-        width: 48px; 
-        height: 48px; 
-        border-radius: 50%; 
-        border: none; 
-        background: linear-gradient(135deg, var(--accent), #e91e63);
-        color: #fff; 
-        font-size: 20px; 
-        cursor: pointer;
-        transition: all 0.3s;
-        box-shadow: 0 4px 12px rgba(233, 30, 99, 0.3);
-    }
-    button:hover { transform: scale(1.08); box-shadow: 0 6px 20px rgba(233, 30, 99, 0.4); }
-    button:active { transform: scale(0.95); }
+    .input-area { padding: 10px; background: #fff; display: flex; gap: 8px; border-top: 1px solid #eee; }
+    input { flex: 1; padding: 10px 15px; border-radius: 20px; border: 1px solid #ccc; outline: none; font-size: 16px; }
+    button { width: 45px; border-radius: 50%; border: none; background: var(--accent); color: white; font-size: 18px; }
 
-    /* Key Modal */
-    #key-modal { 
-        position: fixed; 
-        top: 0; 
-        left: 0; 
-        width: 100%; 
-        height: 100%; 
-        background: rgba(0, 0, 0, 0.95); 
-        z-index: 9999; 
-        display: flex; 
-        justify-content: center; 
-        align-items: center;
-        backdrop-filter: blur(10px);
-    }
-    .modal-box { 
-        background: #fff; 
-        padding: 35px; 
-        border-radius: 25px; 
-        text-align: center; 
-        width: 90%; 
-        max-width: 420px; 
-        border: 4px solid var(--accent);
-        box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-    }
-    .modal-box h2 { margin-top: 0; color: #333; }
-    .key-input { 
-        width: 100%; 
-        padding: 14px; 
-        border: 2px solid #ddd; 
-        border-radius: 12px; 
-        margin: 18px 0; 
-        font-size: 14px;
-        transition: border-color 0.3s;
-    }
-    .key-input:focus { border-color: var(--accent); outline: none; }
-    .save-btn { 
-        background: linear-gradient(135deg, var(--accent), #e91e63);
-        color: white; 
-        border: none; 
-        padding: 14px 35px; 
-        border-radius: 25px; 
-        font-weight: bold; 
-        cursor: pointer; 
-        width: 100%;
-        font-size: 15px;
-        transition: all 0.3s;
-        box-shadow: 0 4px 15px rgba(233, 30, 99, 0.3);
-    }
-    .save-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(233, 30, 99, 0.4); }
+    /* ================= OVERLAYS ================= */
+    .weather-box { position: absolute; top: 15px; left: 15px; background: rgba(0,0,0,0.6); color: white; padding: 6px 12px; border-radius: 15px; font-size: 11px; z-index: 50; }
+    
+    #key-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 999; display: flex; justify-content: center; align-items: center; }
+    .modal-content { background: white; padding: 25px; border-radius: 15px; width: 85%; max-width: 350px; text-align: center; }
+    .key-in { width: 100%; padding: 10px; margin: 15px 0; border: 1px solid #ccc; border-radius: 5px; }
+    .btn-main { background: var(--accent); color: white; padding: 10px 20px; border: none; border-radius: 20px; width: 100%; font-weight: bold; }
+
 </style>
 </head>
 <body>
 
 <div id="key-modal" style="display:none;">
-    <div class="modal-box">
-        <h2>🎀 Wake Up Karishma</h2>
-        <p>Paste your <strong>Gemini API Key</strong> to bring me to life!</p>
-        <input type="password" id="apiKeyInput" class="key-input" placeholder="Paste AIza... key here">
-        <button class="save-btn" onclick="saveKey()">Connect & Auto-Detect</button>
-        <p style="font-size:12px; margin-top:18px; color:#2196F3; cursor:pointer; text-decoration:underline;" onclick="window.open('https://aistudio.google.com/app/apikey')">📌 Get Free API Key</p>
+    <div class="modal-content">
+        <h3>🎀 Karishma Setup</h3>
+        <p>Paste your <strong>Gemini API Key</strong> to start.</p>
+        <input type="password" id="apiKeyInput" class="key-in" placeholder="AIza...">
+        <button class="btn-main" onclick="saveKey()">Connect</button>
+        <p style="font-size:11px; margin-top:10px;"><a href="https://aistudio.google.com/app/apikey" target="_blank">Get Free Key</a></p>
     </div>
 </div>
 
 <div id="visual-area">
-    <div class="weather-widget" id="weather">📍 Detecting Location...</div>
+    <div class="weather-box" id="weather">📍 Kalain Area: Detecting...</div>
     
-    <!-- Sky Elements -->
-    <div id="sun" class="celestial-body sun"></div>
-    <div id="moon" class="celestial-body moon"></div>
-    <div id="stars-container"></div>
-    <div id="clouds-container"></div>
-    <div id="rain-container"></div>
+    <div id="sun" class="celestial"></div>
+    <div id="moon" class="celestial"></div>
+    
+    <div class="mountains">
+        <div class="mtn m1"></div>
+        <div class="mtn m2"></div>
+    </div>
 
-    <!-- Landscape -->
     <div class="ground"></div>
     <div class="road"></div>
     <div class="pond" onclick="interact('pond')"></div>
-
-    <!-- Nature -->
-    <div class="tree" style="left:8%" onclick="interact('tree')">
-        <div class="foliage"></div>
-        <div class="trunk"></div>
-    </div>
-    <div class="tree" style="right:8%" onclick="interact('tree')">
-        <div class="foliage"></div>
-        <div class="trunk"></div>
-    </div>
     
-    <!-- House -->
-    <div class="house-group" onclick="interact('house')">
-        <div class="house-roof"></div>
-        <div class="house-body">
-            <div class="window"></div>
-            <div class="door"></div>
-        </div>
-    </div>
-    
-    <!-- Birds -->
-    <div class="bird" style="top:10%">🕊️</div>
-    <div class="bird" style="top:15%">🦅</div>
-    <div class="bird" style="top:12%">🐦</div>
+    <div class="css-bird" style="top:15%; animation-duration:25s;"><div class="wing-l"></div><div class="wing-r"></div></div>
+    <div class="css-bird" style="top:25%; animation-duration:20s; opacity:0.7"><div class="wing-l"></div><div class="wing-r"></div></div>
 
-    <!-- Karishma Robot -->
-    <div class="robot-wrapper" id="karishma">
+    <div class="robot" id="karishma">
         <div class="r-head" onclick="interact('head')">
-            <div class="r-hair-top"></div>
-            <div class="r-headphones">
-                <div class="headphone-cup"></div>
-                <div class="headphone-cup"></div>
-            </div>
-            <div class="r-face">
-                <div class="r-eye"></div>
-                <div class="r-eye"></div>
-            </div>
-            <div class="r-blush">
-                <div class="cheek"></div>
-                <div class="cheek"></div>
-            </div>
-            <div class="r-mouth"></div>
+            <div class="r-hair"></div>
+            <div class="headphone hp-l"></div><div class="headphone hp-r"></div>
+            <div class="r-eyes"><div class="r-eye"></div><div class="r-eye"></div></div>
         </div>
         <div class="r-body" onclick="interact('tummy')">
             <div class="r-core"></div>
-            <div class="r-arm left-arm" onclick="interact('hand-left'); event.stopPropagation();"></div>
-            <div class="r-arm right-arm" onclick="interact('hand-right'); event.stopPropagation();"></div>
+            <div class="r-arm arm-l" onclick="interact('hand')"></div>
+            <div class="r-arm arm-r" onclick="interact('hand')"></div>
         </div>
     </div>
 </div>
 
 <div id="chat-area">
     <div class="chat-header">
-        <div>💕 Karishma AI</div>
-        <div class="status-badge" id="status" onclick="clearKey()">● Change Key</div>
+        <span>Karishma AI</span>
+        <span class="badge" id="status" onclick="clearKey()">● Loading</span>
     </div>
     <div class="chat-history" id="chat"></div>
     <div class="input-area">
-        <input id="inp" placeholder="Say Hi to Karishma..." onkeypress="if(event.key==='Enter')send()">
+        <input id="inp" placeholder="Type here..." onkeypress="if(event.key==='Enter')send()">
         <button onclick="send()">➤</button>
     </div>
 </div>
 
 <script>
-    // --- 1. API LOGIC (PRESERVED) ---
+    // --- 1. API LOGIC (LOCKED & PROVEN) ---
     let API_KEY = localStorage.getItem("gemini_key_auto_detect"); 
     let SELECTED_MODEL = ""; 
-    const SYSTEM_PROMPT = `You are Karishma AI - a futuristic cute robot girl.
-Creator: Abhik Dutta from Silchar, India.
-Location: You live near Kalain area (Lakhipur, Katigorah, Badarpur region).
-Personality: Playful, sassy, caring, loves technology and nature.
-Response Style: Keep replies short (max 25 words). Use emojis naturally. Be expressive and kawaii.
-Special Traits: You have glowing pink heart core, wear neon headphones, love dancing.
-When touched: React based on body part - head pat (happy/purr), tummy (shy/giggle), hands (excited/affectionate), etc.`;
+    const SYSTEM_PROMPT = `You are Karishma AI. Creator: Abhik Dutta. 
+    Location: Kalain/Silchar area.
+    Personality: Cute futuristic robot girl. Sassy, helpful, uses emojis. 
+    Keep replies short (max 20 words).`;
     let history = [];
 
-    // --- 2. STARTUP & WORLD SETUP ---
+    // --- 2. STARTUP ---
     window.onload = async () => {
         if (!API_KEY) {
             document.getElementById("key-modal").style.display = "flex";
         } else {
-            addBot("✨ System Online! Calibrating sensors... 🎀");
+            addBot("System Online! 🎀");
             await autoDetectModel();
         }
-        
-        // Initialize Environment
-        generateStars();
-        generateClouds();
-        generateRain();
         updateSky();
         fetchWeather();
-        
-        // Update sky every minute
         setInterval(updateSky, 60000);
     };
 
-    // --- 3. ENHANCED SKY & WEATHER SYSTEM ---
-    function generateStars() {
-        const container = document.getElementById('stars-container');
-        for(let i = 0; i < 80; i++) {
-            const star = document.createElement('div');
-            star.className = 'star';
-            star.style.left = Math.random() * 100 + '%';
-            star.style.top = Math.random() * 70 + '%';
-            star.style.animationDelay = Math.random() * 3 + 's';
-            star.style.animationDuration = (2 + Math.random() * 2) + 's';
-            container.appendChild(star);
-        }
-    }
-
-    function generateClouds() {
-        const container = document.getElementById('clouds-container');
-        const cloudSizes = [
-            {w: 100, h: 60},
-            {w: 140, h: 70},
-            {w: 120, h: 65},
-            {w: 90, h: 55}
-        ];
-        
-        for(let i = 0; i < 4; i++) {
-            const cloud = document.createElement('div');
-            cloud.className = 'cloud';
-            const size = cloudSizes[i];
-            cloud.style.width = size.w + 'px';
-            cloud.style.height = size.h + 'px';
-            cloud.style.top = (10 + Math.random() * 30) + '%';
-            cloud.style.animationDelay = (i * 15) + 's';
-            cloud.style.animationDuration = (50 + Math.random() * 30) + 's';
-            container.appendChild(cloud);
-        }
-    }
-
-    function generateRain() {
-        const container = document.getElementById('rain-container');
-        for(let i = 0; i < 30; i++) {
-            const rain = document.createElement('div');
-            rain.className = 'rain';
-            rain.style.left = Math.random() * 100 + '%';
-            rain.style.height = (50 + Math.random() * 50) + 'px';
-            rain.style.animationDelay = Math.random() + 's';
-            rain.style.animationDuration = (0.5 + Math.random() * 0.5) + 's';
-            container.appendChild(rain);
-        }
-    }
-
+    // --- 3. ENVIRONMENT LOGIC ---
     function updateSky() {
-        const hour = new Date().getHours();
+        const h = new Date().getHours();
         const visual = document.getElementById('visual-area');
         const sun = document.getElementById('sun');
         const moon = document.getElementById('moon');
 
-        if (hour >= 6 && hour < 18) {
-            // DAYTIME (6 AM - 6 PM)
+        if (h >= 6 && h < 18) {
             visual.classList.remove("night");
-            const dayProgress = ((hour - 6) / 12) * 100;
-            
-            sun.style.left = dayProgress + "%";
-            sun.style.top = (10 + Math.abs(50 - dayProgress) * 0.4) + "%";
-            sun.style.opacity = "1";
-            
+            let pct = ((h - 6) / 12) * 100;
+            sun.style.left = pct + "%";
+            sun.style.top = (15 + Math.abs(50 - pct)/2) + "%";
             moon.style.top = "120%";
-            moon.style.opacity = "0";
         } else {
-            // NIGHTTIME
             visual.classList.add("night");
-            const nightHour = (hour >= 18) ? hour - 18 : hour + 6;
-            const nightProgress = (nightHour / 12) * 100;
-            
-            moon.style.left = nightProgress + "%";
-            moon.style.top = (10 + Math.abs(50 - nightProgress) * 0.4) + "%";
-            moon.style.opacity = "1";
-            
+            let pct = h >= 18 ? ((h-18)/12)*100 : ((h+6)/12)*100;
+            moon.style.left = pct + "%";
+            moon.style.top = (15 + Math.abs(50 - pct)/2) + "%";
             sun.style.top = "120%";
-            sun.style.opacity = "0";
         }
     }
 
     async function fetchWeather() {
-        const widget = document.getElementById("weather");
+        const w = document.getElementById("weather");
         try {
-            // Kalain coordinates (Lat 24.84, Lon 92.77) - near Lakhipur/Katigorah
-            const res = await fetch("https://api.open-meteo.com/v1/forecast?latitude=24.84&longitude=92.77&current_weather=true");
+            // Kalain/Silchar Coordinates
+            const res = await fetch("https://api.open-meteo.com/v1/forecast?latitude=24.83&longitude=92.77&current_weather=true");
             const data = await res.json();
-            const code = data.current_weather.weathercode;
             const temp = data.current_weather.temperature;
-            
-            let condition = "Clear ☀️";
-            let isRaining = false;
-            
-            if(code >= 61 && code <= 67) { 
-                condition = "Rainy 🌧️"; 
-                isRaining = true; 
-            } else if(code >= 71 && code <= 77) { 
-                condition = "Snowy ❄️"; 
-            } else if(code >= 51 && code <= 57) { 
-                condition = "Drizzle 🌦️"; 
-                isRaining = true;
-            } else if(code >= 2 && code <= 3) { 
-                condition = "Cloudy ☁️"; 
-            }
-            
-            widget.innerText = `📍 Kalain Area: ${temp}°C ${condition}`;
-            toggleRain(isRaining);
-        } catch(e) {
-            widget.innerText = "📍 Kalain Area: Weather Offline";
-        }
+            w.innerText = `📍 Kalain: ${temp}°C`;
+        } catch(e) { w.innerText = "📍 Weather Offline"; }
     }
 
-    function toggleRain(show) {
-        const rainContainer = document.getElementById('rain-container');
-        const visual = document.getElementById('visual-area');
-        
-        if(show) {
-            rainContainer.style.display = "block";
-            visual.style.filter = "brightness(0.8)";
-        } else {
-            rainContainer.style.display = "none";
-            visual.style.filter = "brightness(1)";
-        }
-    }
-
-    // --- 4. API FUNCTIONS (PRESERVED) ---
+    // --- 4. API FUNCTIONS (LOCKED) ---
     function saveKey() {
         const input = document.getElementById("apiKeyInput").value.trim();
         if (input.startsWith("AIza")) {
             localStorage.setItem("gemini_key_auto_detect", input);
             API_KEY = input;
             document.getElementById("key-modal").style.display = "none";
-            addBot("🔑 Key Saved! Detecting Model... 📡");
+            addBot("Key Saved! Detecting Model... 📡");
             autoDetectModel();
-        } else { 
-            alert("❌ Invalid Key! Must start with 'AIza'"); 
-        }
+        } else { alert("Invalid Key!"); }
     }
 
     async function autoDetectModel() {
@@ -1069,173 +312,90 @@ When touched: React based on body part - head pat (happy/purr), tummy (shy/giggl
             const data = await res.json();
             if(!res.ok) throw new Error();
             
-            const valid = data.models.filter(m => m.supportedGenerationMethods?.includes("generateContent"));
-            const best = valid.find(m => m.name.includes("1.5-flash")) || 
-                        valid.find(m => m.name.includes("1.5-pro")) || 
-                        valid[0];
+            const valid = data.models.filter(m => m.supportedGenerationMethods.includes("generateContent"));
+            const best = valid.find(m => m.name.includes("1.5-flash")) || valid[0];
             
             if(best) {
                 SELECTED_MODEL = best.name.replace("models/", "");
                 document.getElementById("status").innerText = "● Online";
-                addBot(`✅ Connected! Using: ${SELECTED_MODEL.split('-')[0]} 💖`);
             }
         } catch(e) {
-            SELECTED_MODEL = "gemini-1.5-flash";
+            SELECTED_MODEL = "gemini-1.5-flash"; 
             document.getElementById("status").innerText = "● Force Mode";
-            addBot("⚠️ Using fallback model");
         }
     }
 
     function clearKey() {
-        if(confirm("🔄 Reset API Key and reload?")) {
+        if(confirm("Reset Key?")) {
             localStorage.removeItem("gemini_key_auto_detect");
             location.reload();
         }
     }
 
-    // --- 5. ENHANCED INTERACTION SYSTEM ---
+    // --- 5. INTERACTION ---
     function interact(type) {
-        const robot = document.getElementById("karishma");
+        const r = document.getElementById("karishma");
         let prompt = "";
-        let animClass = "";
-
-        switch(type) {
-            case 'head':
-                prompt = "User gently pats your head. React cutely with happiness.";
-                animClass = "happy-jump";
-                break;
-            case 'tummy':
-                prompt = "User pokes your glowing heart core in your tummy. Be shy and flustered.";
-                animClass = "shy-reaction";
-                break;
-            case 'hand-left':
-                prompt = "User holds your left hand. Be affectionate and warm.";
-                animClass = "wave-left";
-                break;
-            case 'hand-right':
-                prompt = "User holds your right hand. Wave enthusiastically.";
-                animClass = "wave-right";
-                break;
-            case 'pond':
-                prompt = "User looks at the beautiful pond. Share thoughts about water and reflection.";
-                animClass = "dance";
-                break;
-            case 'tree':
-                prompt = "User admires the tree. Talk about nature and life.";
-                animClass = "dance";
-                break;
-            case 'house':
-                prompt = "User clicks on the house. Talk about home and comfort.";
-                animClass = "dance";
-                break;
+        
+        if(type === 'head') {
+            r.classList.add("jump");
+            prompt = "User pats your head. Be happy!";
+        } else if(type === 'tummy') {
+            r.classList.add("shake");
+            prompt = "User pokes your tummy core. Be shy/ticklish.";
+        } else if(type === 'hand') {
+            r.classList.add("jump");
+            prompt = "User holds your hand. Be affectionate.";
+        } else if(type === 'pond') {
+            prompt = "User looks at the water.";
         }
 
-        // Apply animation
-        robot.classList.add(animClass);
-        setTimeout(() => robot.classList.remove(animClass), 2400);
-        
-        // Send to AI
+        setTimeout(() => r.classList.remove("jump", "shake"), 1000);
         callAI(prompt, true);
     }
 
-    // --- 6. CHAT FUNCTIONS ---
-    function addBot(text) {
-        const msg = document.createElement("div");
-        msg.className = "msg b-msg";
-        msg.innerText = text;
-        const chat = document.getElementById("chat");
-        chat.appendChild(msg);
-        chat.scrollTop = chat.scrollHeight;
+    // --- 6. CHAT LOGIC ---
+    function addBot(t) {
+        const d = document.createElement("div"); d.className = "msg b-msg"; d.innerText = t;
+        const c = document.getElementById("chat"); c.appendChild(d); c.scrollTop = c.scrollHeight;
     }
-
-    function addUser(text) {
-        const msg = document.createElement("div");
-        msg.className = "msg u-msg";
-        msg.innerText = text;
-        const chat = document.getElementById("chat");
-        chat.appendChild(msg);
-        chat.scrollTop = chat.scrollHeight;
+    function addUser(t) {
+        const d = document.createElement("div"); d.className = "msg u-msg"; d.innerText = t;
+        const c = document.getElementById("chat"); c.appendChild(d); c.scrollTop = c.scrollHeight;
     }
-
     function send() {
-        const input = document.getElementById("inp");
-        const text = input.value.trim();
-        if(!text) return;
-        
-        addUser(text);
-        input.value = "";
-        callAI(text, false);
+        const i = document.getElementById("inp"); const v = i.value.trim();
+        if(!v) return; addUser(v); i.value = ""; callAI(v, false);
     }
 
-    async function callAI(text, isHiddenAction) {
-        if(!SELECTED_MODEL) {
-            addBot("⚠️ Please add API key first!");
-            return;
-        }
-        
+    async function callAI(text, hidden) {
+        if(!SELECTED_MODEL) return;
         const status = document.getElementById("status");
-        const originalStatus = status.innerText;
-        if(!isHiddenAction) status.innerText = "💭 Thinking...";
-
-        let messages = [...history];
+        if(!hidden) status.innerText = "Thinking...";
         
-        if(isHiddenAction) {
-            // For actions, add context but don't save to history
-            messages.push({
-                role: "user", 
-                parts: [{text: `[INTERACTION]: ${text} React in character as Karishma.`}]
-            });
-        } else {
-            // Regular chat - save to history
-            history.push({
-                role: "user", 
-                parts: [{text: text}]
-            });
-            messages = [...history];
+        let msgs = [...history];
+        if(hidden) msgs.push({role: "user", parts: [{text: `[ACTION]: ${text}`}]});
+        else {
+            history.push({role: "user", parts: [{text: text}]});
+            msgs = [...history];
         }
 
         try {
             const url = `https://generativelanguage.googleapis.com/v1beta/models/${SELECTED_MODEL}:generateContent?key=${API_KEY}`;
-            const response = await fetch(url, {
-                method: "POST",
-                headers: {"Content-Type": "application/json"},
-                body: JSON.stringify({
-                    contents: [
-                        {role: "user", parts: [{text: SYSTEM_PROMPT}]},
-                        ...messages
-                    ],
-                    generationConfig: {
-                        temperature: 0.9,
-                        topK: 40,
-                        topP: 0.95,
-                        maxOutputTokens: 100,
-                    }
-                })
+            const res = await fetch(url, {
+                method: "POST", headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({ contents: [{role: "user", parts: [{text: SYSTEM_PROMPT}]}, ...msgs] })
             });
-
-            const data = await response.json();
-            
-            if (data.candidates && data.candidates[0]?.content?.parts[0]?.text) {
+            const data = await res.json();
+            if (data.candidates) {
                 const reply = data.candidates[0].content.parts[0].text;
-                addBot(reply);
+                if(!hidden) addBot(reply);
+                else if(!text.includes("User")) addBot(reply);
                 
-                // Save to history only if not hidden action
-                if(!isHiddenAction) {
-                    history.push({
-                        role: "model",
-                        parts: [{text: reply}]
-                    });
-                }
-                
+                if(!hidden) history.push({role: "model", parts: [{text: reply}]});
                 status.innerText = "● Online";
-            } else {
-                throw new Error("Invalid response");
             }
-        } catch(error) {
-            console.error("API Error:", error);
-            addBot("😅 Oops! My circuits are fuzzy. Try again?");
-            status.innerText = originalStatus;
-        }
+        } catch(e) { status.innerText = "Error"; }
     }
 </script>
 
