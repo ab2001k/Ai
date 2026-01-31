@@ -3,432 +3,433 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Karishma AI — Living World</title>
+<title>Karishma: Future Hybrid</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎀</text></svg>">
 
 <style>
-/* ================= ROOT ================= */
-:root{
-  --accent:#ff5fa2;
-  --skin:#f4e9e4;
-  --hair:#2b1d1a;
-  --glass:rgba(255,255,255,0.85);
-  --shadow:0 15px 40px rgba(0,0,0,.25);
-}
+    /* ================= CORE VARIABLES ================= */
+    :root {
+        --sky-day: linear-gradient(180deg, #00b4db, #b2fefa);
+        --sky-night: linear-gradient(180deg, #0f0c29, #302b63, #24243e);
+        --robot-skin: #fff0f5; /* Pale pinkish white */
+        --robot-neon: #ff0055; /* Neon Pink Glow */
+        --glass-panel: rgba(255, 255, 255, 0.85);
+        --accent: #ff4081;
+    }
 
-/* ================= GLOBAL ================= */
-*{box-sizing:border-box}
-body{
-  margin:0;
-  height:100vh;
-  display:flex;
-  background:#000;
-  font-family:system-ui,-apple-system,Segoe UI,sans-serif;
-  overflow:hidden;
-}
+    * { box-sizing: border-box; }
+    body { margin: 0; padding: 0; width: 100vw; height: 100vh; overflow: hidden; background: #000; font-family: 'Segoe UI', system-ui, sans-serif; display: flex; flex-direction: row; }
 
-/* ================= LAYOUT ================= */
-#world{
-  flex:1;
-  position:relative;
-  overflow:hidden;
-  background:linear-gradient(#6db3f2,#ffffff 65%);
-  transition:background 2s;
-}
-#world.night{
-  background:linear-gradient(#020024,#090979,#000);
-}
+    /* ================= LAYOUT ================= */
+    #visual-area { flex: 1; position: relative; overflow: hidden; background: var(--sky-day); transition: background 2s ease; z-index: 1; }
+    #visual-area.night { background: var(--sky-night); }
+    
+    #chat-area { 
+        width: 380px; background: var(--glass-panel); backdrop-filter: blur(15px); 
+        display: flex; flex-direction: column; border-left: 1px solid rgba(255,255,255,0.5); 
+        z-index: 100; box-shadow: -5px 0 30px rgba(0,0,0,0.2); 
+    }
+    
+    /* Mobile Responsive */
+    @media (max-width: 850px) { 
+        body { flex-direction: column; } 
+        #visual-area { height: 60%; flex: none; } 
+        #chat-area { width: 100%; flex: 1; border-left: none; border-top: 1px solid #ccc; } 
+    }
 
-#chat{
-  width:380px;
-  background:var(--glass);
-  backdrop-filter:blur(12px);
-  display:flex;
-  flex-direction:column;
-  box-shadow:-10px 0 40px rgba(0,0,0,.3);
-}
-@media(max-width:850px){
-  body{flex-direction:column}
-  #world{height:60%}
-  #chat{width:100%}
-}
+    /* ================= LIVING WORLD ================= */
+    
+    /* 1. Dynamic Sky (Sun/Moon moved by JS) */
+    .celestial-body {
+        position: absolute; width: 80px; height: 80px; border-radius: 50%;
+        left: 50%; top: 110%; /* Hidden by default */
+        transform: translate(-50%, -50%);
+        transition: top 1s, left 1s; pointer-events: none;
+        box-shadow: 0 0 40px rgba(255, 200, 0, 0.5);
+    }
+    .sun { background: radial-gradient(circle, #ffd700, #ff8c00); box-shadow: 0 0 60px #ffd700; }
+    .moon { background: radial-gradient(circle, #f0f0f0, #ccc); box-shadow: 0 0 30px #fff; }
 
-/* ================= SKY OBJECTS ================= */
-.celestial{
-  position:absolute;
-  width:70px;height:70px;
-  border-radius:50%;
-  transition:all 1s linear;
-  z-index:1;
-}
-#sun{
-  background:radial-gradient(circle,#fff9c4,#ff9800);
-  box-shadow:0 0 80px #ff9800;
-}
-#moon{
-  background:radial-gradient(circle,#ffffff,#cfd8dc);
-  box-shadow:0 0 40px #ffffff;
-}
+    /* 2. Weather Overlay */
+    .rain {
+        position: absolute; width: 2px; height: 100%; background: linear-gradient(transparent, rgba(255,255,255,0.5));
+        left: 0; top: 0; animation: rainDrop 0.5s linear infinite; display: none; z-index: 10;
+    }
+    @keyframes rainDrop { 0% { transform: translateY(-100vh); } 100% { transform: translateY(100vh); } }
+    #visual-area.rainy .rain { display: block; } /* Activates rain */
 
-/* ================= STARS ================= */
-#stars{
-  position:absolute;
-  inset:0;
-  pointer-events:none;
-  opacity:0;
-  transition:opacity 2s;
-}
-#world.night #stars{opacity:1}
-.star{
-  position:absolute;
-  width:2px;height:2px;
-  background:white;
-  border-radius:50%;
-  opacity:.8;
-}
+    /* 3. Landscape Details */
+    .ground { 
+        position: absolute; bottom: 0; width: 100%; height: 30%; 
+        background: linear-gradient(#4caf50, #2e7d32); 
+        clip-path: ellipse(150% 100% at 50% 100%); z-index: 2;
+    }
+    .road {
+        position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
+        width: 200px; height: 30%; background: #555;
+        clip-path: polygon(20% 0, 80% 0, 100% 100%, 0% 100%); z-index: 3;
+    }
+    .pond {
+        position: absolute; bottom: 5%; right: 5%; width: 180px; height: 60px;
+        background: rgba(0, 191, 255, 0.6); border-radius: 50%;
+        box-shadow: inset 0 0 20px rgba(0,0,50,0.2); z-index: 4;
+        border: 2px solid rgba(255,255,255,0.4); animation: ripple 3s infinite alternate;
+    }
+    @keyframes ripple { 0% { transform: scale(1); } 100% { transform: scale(1.02); } }
 
-/* ================= WEATHER ================= */
-#weather{
-  position:absolute;
-  top:12px;
-  left:12px;
-  background:rgba(0,0,0,.6);
-  color:#fff;
-  padding:6px 12px;
-  border-radius:14px;
-  font-size:12px;
-  z-index:5;
-}
+    /* 4. Improved Trees */
+    .tree { position: absolute; bottom: 15%; z-index: 5; cursor: pointer; transition: 0.2s; }
+    .tree:active { transform: scale(0.95); }
+    .trunk { width: 15px; height: 100px; background: #3e2723; margin: 0 auto; border-radius: 3px; }
+    .foliage { 
+        position: absolute; bottom: 60px; left: 50%; transform: translateX(-50%);
+        width: 100px; height: 100px; background: #2d6a4f; border-radius: 50%;
+        box-shadow: inset -10px -10px 0 rgba(0,0,0,0.2);
+    }
+    /* Birds */
+    .bird { position: absolute; font-size: 20px; animation: fly 15s linear infinite; z-index: 8; top: 20%; }
+    @keyframes fly { from{left:-50px;} to{left:110%;} }
 
-/* ================= LAND ================= */
-.ground{
-  position:absolute;
-  bottom:0;
-  height:30%;
-  width:100%;
-  background:linear-gradient(#6fbf73,#3f8f46);
-  z-index:2;
-}
-.pond{
-  position:absolute;
-  bottom:10%;
-  right:8%;
-  width:220px;height:80px;
-  background:radial-gradient(circle at top,#7fd3ff,#1976d2);
-  border-radius:50%;
-  box-shadow:inset 0 10px 20px rgba(255,255,255,.4);
-  z-index:3;
-}
+    /* 5. House (Improved) */
+    .house-group { position: absolute; bottom: 20%; left: 8%; z-index: 5; cursor: pointer; }
+    .house-body { width: 120px; height: 90px; background: #fffbe7; border: 2px solid #5d4037; position: relative; }
+    .house-roof { 
+        position: absolute; top: -50px; left: -10px; width: 0; height: 0;
+        border-left: 70px solid transparent; border-right: 70px solid transparent; border-bottom: 50px solid #d32f2f;
+    }
+    .window { width: 30px; height: 30px; background: #81d4fa; position: absolute; top: 20px; right: 15px; border: 2px solid #333; border-radius: 50%; }
 
-/* ================= TREE ================= */
-.tree{
-  position:absolute;
-  bottom:18%;
-  left:6%;
-  cursor:pointer;
-  z-index:3;
-}
-.trunk{
-  width:14px;height:90px;
-  background:#4e342e;
-  margin:auto;
-  border-radius:4px;
-}
-.leaves{
-  width:120px;height:120px;
-  background:#2e7d32;
-  border-radius:50%;
-  position:absolute;
-  bottom:70px;left:-53px;
-  box-shadow:inset -10px -10px rgba(0,0,0,.15);
-}
+    /* ================= FUTURISTIC ANIME ROBOT ================= */
+    .robot-wrapper {
+        position: absolute; bottom: 15%; left: 50%; transform: translateX(-50%);
+        z-index: 20; display: flex; flex-direction: column; align-items: center;
+        filter: drop-shadow(0 0 10px rgba(255, 0, 85, 0.4));
+        transition: transform 0.2s;
+    }
+    .robot-wrapper:active { transform: translateX(-50%) scale(0.95); }
 
-/* ================= HOUSE ================= */
-.house{
-  position:absolute;
-  bottom:18%;
-  left:16%;
-  cursor:pointer;
-  z-index:3;
-}
-.house-body{
-  width:130px;height:95px;
-  background:#fff3cd;
-  border:2px solid #555;
-}
-.house-roof{
-  width:0;height:0;
-  border-left:75px solid transparent;
-  border-right:75px solid transparent;
-  border-bottom:55px solid #c62828;
-  margin-left:-10px;
-}
+    /* Head & Hair */
+    .r-head {
+        width: 90px; height: 100px; background: var(--robot-skin);
+        border-radius: 40px 40px 30px 30px; position: relative; z-index: 2;
+        border: 2px solid #ddd; overflow: hidden; cursor: pointer;
+    }
+    .r-hair-top {
+        position: absolute; top: 0; width: 100%; height: 35px;
+        background: #333; border-radius: 40px 40px 0 0; z-index: 3;
+    }
+    .r-headphones {
+        position: absolute; top: 30px; width: 100%; height: 20px;
+        display: flex; justify-content: space-between; z-index: 4;
+    }
+    .headphone-cup {
+        width: 15px; height: 35px; background: var(--robot-neon);
+        border-radius: 5px; box-shadow: 0 0 10px var(--robot-neon);
+    }
 
-/* ================= SIGN ================= */
-.sign{
-  position:absolute;
-  bottom:20%;
-  right:40%;
-  background:#3e2723;
-  color:#fff;
-  padding:6px 14px;
-  border-radius:6px;
-  font-size:12px;
-  z-index:4;
-}
+    /* Face */
+    .r-face { position: absolute; top: 40px; width: 100%; display: flex; justify-content: center; gap: 15px; z-index: 3; }
+    .r-eye {
+        width: 20px; height: 28px; background: #222; border-radius: 50%;
+        position: relative; animation: blink 4s infinite;
+    }
+    .r-eye::after { content:''; position: absolute; top:5px; right:5px; width:6px; height:6px; background:#fff; border-radius:50%; }
+    .r-blush {
+        position: absolute; top: 30px; width: 100%; display: flex; justify-content: center; gap: 35px;
+    }
+    .cheek { width: 8px; height: 5px; background: #ffaaaa; border-radius: 50%; opacity: 0.6; }
 
-/* ================= KARISHMA ================= */
-#karishma{
-  position:absolute;
-  bottom:18%;
-  left:50%;
-  transform:translateX(-50%);
-  z-index:4;
-}
+    /* Body */
+    .r-body {
+        width: 60px; height: 70px; background: #fff;
+        margin-top: -5px; border-radius: 15px; border: 2px solid #ddd;
+        position: relative; z-index: 1; display: flex; justify-content: center; align-items: center;
+        cursor: pointer;
+    }
+    .r-core {
+        width: 20px; height: 20px; background: var(--robot-neon);
+        border-radius: 50%; box-shadow: 0 0 15px var(--robot-neon);
+        animation: heartbeat 2s infinite;
+    }
+    
+    /* Limbs */
+    .r-arm {
+        width: 14px; height: 55px; background: #fff; border: 2px solid #ddd;
+        border-radius: 10px; position: absolute; top: 25px; cursor: pointer;
+    }
+    .left-arm { left: -15px; transform: rotate(20deg); }
+    .right-arm { right: -15px; transform: rotate(-20deg); }
 
-/* HEAD */
-.head{
-  width:110px;height:130px;
-  background:var(--skin);
-  border-radius:50% 50% 45% 45%;
-  position:relative;
-  box-shadow:var(--shadow);
-  cursor:pointer;
-}
+    /* Animations */
+    @keyframes blink { 0%,48%,52%,100%{height:28px;} 50%{height:2px;} }
+    @keyframes heartbeat { 0%{transform:scale(1);} 50%{transform:scale(1.2);} }
+    .dance { animation: danceMove 0.5s infinite; }
+    @keyframes danceMove { 0%,100%{transform:translateX(-50%) rotate(0);} 25%{transform:translateX(-50%) rotate(-5deg);} 75%{transform:translateX(-50%) rotate(5deg);} }
 
-/* HAIR */
-.hair{
-  position:absolute;
-  top:-12px;
-  width:100%;height:70px;
-  background:var(--hair);
-  border-radius:50% 50% 30% 30%;
-}
+    /* ================= UI ELEMENTS ================= */
+    .weather-widget {
+        position: absolute; top: 15px; left: 15px; background: rgba(0,0,0,0.6); color: white;
+        padding: 8px 15px; border-radius: 20px; font-size: 12px; z-index: 50;
+        backdrop-filter: blur(5px); border: 1px solid rgba(255,255,255,0.2);
+    }
 
-/* EYES */
-.eye{
-  position:absolute;
-  top:52px;
-  width:18px;height:22px;
-  background:#111;
-  border-radius:50%;
-}
-.eye.left{left:30px}
-.eye.right{right:30px}
+    /* Chat Styling */
+    .chat-header { padding: 15px; background: #fff; font-weight: bold; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+    .status-badge { font-size: 11px; padding: 4px 10px; border-radius: 20px; background: #e8f5e9; color: #2e7d32; cursor: pointer; }
+    .chat-history { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 12px; }
+    .msg { padding: 12px 16px; border-radius: 18px; font-size: 14px; max-width: 85%; animation: pop 0.3s ease; box-shadow: 0 1px 3px rgba(0,0,0,0.1); word-wrap: break-word; }
+    .u-msg { align-self: flex-end; background: var(--accent); color: #fff; border-bottom-right-radius: 2px; }
+    .b-msg { align-self: flex-start; background: #fff; border: 1px solid #eee; color: #333; border-bottom-left-radius: 2px; }
+    @keyframes pop { from{transform:scale(0.8); opacity:0;} to{transform:scale(1); opacity:1;} }
+    .input-area { padding: 15px; background: #fff; border-top: 1px solid #eee; display: flex; gap: 10px; }
+    input { flex: 1; padding: 12px; border-radius: 25px; border: 1px solid #ddd; outline: none; }
+    button { width: 45px; height: 45px; border-radius: 50%; border: none; background: var(--accent); color: #fff; font-size: 18px; cursor: pointer; }
 
-/* BODY */
-.body{
-  width:100px;height:120px;
-  background:#ffffff;
-  margin:auto;
-  margin-top:-12px;
-  border-radius:22px;
-  box-shadow:var(--shadow);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  cursor:pointer;
-}
-.core{
-  width:22px;height:22px;
-  background:var(--accent);
-  border-radius:50%;
-  box-shadow:0 0 12px var(--accent);
-  animation:pulse 2s infinite;
-}
-@keyframes pulse{50%{transform:scale(1.2)}}
-
-/* ================= CHAT ================= */
-.header{
-  padding:14px;
-  border-bottom:1px solid #ddd;
-  font-weight:600;
-}
-.messages{
-  flex:1;
-  overflow-y:auto;
-  padding:16px;
-  display:flex;
-  flex-direction:column;
-  gap:10px;
-}
-.msg{
-  max-width:80%;
-  padding:10px 14px;
-  border-radius:16px;
-}
-.user{align-self:flex-end;background:var(--accent);color:#fff}
-.bot{align-self:flex-start;background:#fff;border:1px solid #ddd}
-
-.input{
-  display:flex;
-  padding:12px;
-  gap:8px;
-}
-.input input{
-  flex:1;
-  padding:10px;
-  border-radius:20px;
-  border:1px solid #ccc;
-}
-.input button{
-  width:40px;height:40px;
-  border-radius:50%;
-  border:none;
-  background:var(--accent);
-  color:#fff;
-}
+    /* Key Modal */
+    #key-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 9999; display: flex; justify-content: center; align-items: center; }
+    .modal-box { background: #fff; padding: 30px; border-radius: 20px; text-align: center; width: 90%; max-width: 400px; border: 4px solid var(--accent); }
+    .key-input { width: 100%; padding: 12px; border: 2px solid #ccc; border-radius: 10px; margin: 15px 0; font-size: 14px; }
+    .save-btn { background: var(--accent); color: white; border: none; padding: 12px 30px; border-radius: 25px; font-weight: bold; cursor: pointer; width: 100%; }
 </style>
 </head>
-
 <body>
 
-<div id="world">
-  <div id="weather">📍 Silchar · Loading…</div>
-
-  <div id="sun" class="celestial"></div>
-  <div id="moon" class="celestial"></div>
-  <div id="stars"></div>
-
-  <div class="ground"></div>
-  <div class="pond" onclick="touchObject('pond')"></div>
-
-  <div class="tree" onclick="touchObject('tree')">
-    <div class="leaves"></div>
-    <div class="trunk"></div>
-  </div>
-
-  <div class="house" onclick="touchObject('house')">
-    <div class="house-roof"></div>
-    <div class="house-body"></div>
-  </div>
-
-  <div class="sign">Created by Abhik Dutta</div>
-
-  <div id="karishma">
-    <div class="head" onclick="touchBody('head')">
-      <div class="hair"></div>
-      <div class="eye left"></div>
-      <div class="eye right"></div>
+<div id="key-modal" style="display:none;">
+    <div class="modal-box">
+        <h2>🎀 Wake Up Karishma</h2>
+        <p>Paste your <strong>Gemini API Key</strong>.</p>
+        <input type="password" id="apiKeyInput" class="key-input" placeholder="Paste AIza... key here">
+        <button class="save-btn" onclick="saveKey()">Connect & Auto-Detect</button>
+        <p style="font-size:12px; margin-top:15px; color:blue; cursor:pointer;" onclick="window.open('https://aistudio.google.com/app/apikey')">Get Free Key</p>
     </div>
-    <div class="body" onclick="touchBody('body')">
-      <div class="core"></div>
-    </div>
-  </div>
 </div>
 
-<div id="chat">
-  <div class="header">Karishma AI</div>
-  <div class="messages" id="msgs"></div>
-  <div class="input">
-    <input id="text" placeholder="Talk to Karishma…">
-    <button onclick="send()">➤</button>
-  </div>
+<div id="visual-area">
+    <div class="weather-widget" id="weather">📍 Detecting Location...</div>
+    
+    <div id="sun" class="celestial-body sun"></div>
+    <div id="moon" class="celestial-body moon"></div>
+    <div id="rain-container"></div>
+
+    <div class="ground"></div>
+    <div class="road"></div>
+    <div class="pond" onclick="interact('pond')"></div>
+
+    <div class="tree" style="left:5%" onclick="interact('tree')"><div class="foliage"></div><div class="trunk"></div></div>
+    <div class="tree" style="right:5%" onclick="interact('tree')"><div class="foliage"></div><div class="trunk"></div></div>
+    <div class="house-group" onclick="interact('house')">
+        <div class="house-roof"></div><div class="house-body"><div class="window"></div></div>
+    </div>
+    
+    <div class="bird">🕊️</div>
+
+    <div class="robot-wrapper" id="karishma">
+        <div class="r-head" onclick="interact('head')">
+            <div class="r-hair-top"></div>
+            <div class="r-headphones"><div class="headphone-cup"></div><div class="headphone-cup"></div></div>
+            <div class="r-face">
+                <div class="r-eye"></div><div class="r-eye"></div>
+                <div class="r-blush"><div class="cheek"></div><div class="cheek"></div></div>
+            </div>
+        </div>
+        <div class="r-body" onclick="interact('tummy')">
+            <div class="r-core"></div>
+            <div class="r-arm left-arm" onclick="interact('hand')"></div>
+            <div class="r-arm right-arm" onclick="interact('hand')"></div>
+        </div>
+    </div>
+</div>
+
+<div id="chat-area">
+    <div class="chat-header">
+        <div>Karishma AI</div><div class="status-badge" id="status" onclick="clearKey()">● Change Key</div>
+    </div>
+    <div class="chat-history" id="chat"></div>
+    <div class="input-area">
+        <input id="inp" placeholder="Type Hi..." onkeypress="if(event.key==='Enter')send()">
+        <button onclick="send()">➤</button>
+    </div>
 </div>
 
 <script>
-/* ================= AI LOGIC (UNCHANGED) ================= */
-let API_KEY=localStorage.getItem("gemini_key_auto_detect");
-let MODEL="gemini-1.5-flash";
-let history=[];
+    // --- 1. API LOGIC (LOCKED - Auto Detect) ---
+    let API_KEY = localStorage.getItem("gemini_key_auto_detect"); 
+    let SELECTED_MODEL = ""; 
+    const SYSTEM_PROMPT = `You are Karishma AI. Creator: Abhik Dutta.
+    Personality: Futuristic cute robot girl living in Silchar, India.
+    Rules: Keep replies short (max 20 words). Use emojis. Be sassy but helpful.`;
+    let history = [];
 
-const SYSTEM=
-"You are Karishma AI, created by Abhik Dutta. You are a cute, human-like AI girl. Replies under 20 words, expressive, warm, slightly playful.";
+    // --- 2. STARTUP & WORLD ---
+    window.onload = async () => {
+        if (!API_KEY) {
+            document.getElementById("key-modal").style.display = "flex";
+        } else {
+            addBot("System Online! Calibrating sensors... 🎀");
+            await autoDetectModel();
+        }
+        updateSky(); // Set sun/moon
+        fetchWeather(); // Get Silchar weather
+        generateRain(); // Prep rain div
+        setInterval(updateSky, 60000); // Update every minute
+    };
 
-function add(t,c){
-  const d=document.createElement("div");
-  d.className="msg "+c;
-  d.innerText=t;
-  msgs.appendChild(d);
-  msgs.scrollTop=msgs.scrollHeight;
-}
-function send(){
-  const v=text.value.trim();
-  if(!v)return;
-  add(v,"user");
-  text.value="";
-  callAI(v);
-}
-function touchObject(obj){ callAI(`[TOUCH_OBJECT]: User touched ${obj}`,true); }
-function touchBody(part){ callAI(`[TOUCH_BODY]: User touched your ${part}`,true); }
+    // --- 3. WEATHER & SKY ---
+    function updateSky() {
+        const h = new Date().getHours();
+        const visual = document.getElementById('visual-area');
+        const sun = document.getElementById('sun');
+        const moon = document.getElementById('moon');
 
-async function callAI(text,hidden=false){
-  if(!API_KEY){add("Please add Gemini API key.","bot");return;}
-  const body={
-    contents:[
-      {role:"user",parts:[{text:SYSTEM}]},
-      ...history,
-      {role:"user",parts:[{text:text}]}
-    ]
-  };
-  const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${API_KEY}`,{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify(body)
-  });
-  const j=await r.json();
-  const reply=j.candidates?.[0]?.content?.parts?.[0]?.text||"…";
-  if(!hidden)add(reply,"bot");
-  history.push({role:"user",parts:[{text}]});
-  history.push({role:"model",parts:[{text:reply}]});
-}
+        // Map 24h time to Sky Position (0% to 100% across screen)
+        if (h >= 6 && h < 18) { // DAY
+            visual.classList.remove("night");
+            let pct = ((h - 6) / 12) * 100;
+            sun.style.left = pct + "%";
+            sun.style.top = (15 + Math.abs(50 - pct)/2) + "%"; // Arc effect
+            moon.style.top = "120%"; // Hide moon
+        } else { // NIGHT
+            visual.classList.add("night");
+            let nh = (h >= 18) ? h - 18 : h + 6;
+            let pct = (nh / 12) * 100;
+            moon.style.left = pct + "%";
+            moon.style.top = (15 + Math.abs(50 - pct)/2) + "%";
+            sun.style.top = "120%"; // Hide sun
+        }
+    }
 
-/* ================= WEATHER ================= */
-async function fetchWeather(){
-  try{
-    const res=await fetch(
-      "https://api.open-meteo.com/v1/forecast?latitude=24.83&longitude=92.77&current_weather=true"
-    );
-    const d=await res.json();
-    const w=d.current_weather;
-    let c="Sunny ☀️";
-    if(w.weathercode>3)c="Cloudy ☁️";
-    if(w.weathercode>50)c="Rainy 🌧️";
-    weather.innerText=`📍 Silchar · ${w.temperature}°C · ${c}`;
-  }catch{
-    weather.innerText="📍 Silchar · Offline";
-  }
-}
+    async function fetchWeather() {
+        const w = document.getElementById("weather");
+        try {
+            // Open-Meteo for Silchar (Lat 24.83, Lon 92.77)
+            const res = await fetch("https://api.open-meteo.com/v1/forecast?latitude=24.83&longitude=92.77&current_weather=true");
+            const data = await res.json();
+            const code = data.current_weather.weathercode;
+            const temp = data.current_weather.temperature;
+            
+            let cond = "Clear";
+            if(code > 3) cond = "Cloudy";
+            if(code > 50) { cond = "Rainy"; toggleRain(true); } else { toggleRain(false); }
+            
+            w.innerText = `📍 Silchar: ${temp}°C ${cond}`;
+        } catch(e) {
+            w.innerText = "📍 Weather Offline";
+        }
+    }
 
-/* ================= SKY ================= */
-function updateSky(){
-  const h=new Date().getHours();
-  const world=document.getElementById("world");
+    function generateRain() {
+        const c = document.getElementById('rain-container');
+        for(let i=0; i<20; i++) {
+            let d = document.createElement('div');
+            d.className = 'rain';
+            d.style.left = Math.random()*100 + "%";
+            d.style.animationDelay = Math.random() + "s";
+            c.appendChild(d);
+        }
+    }
+    function toggleRain(show) {
+        document.getElementById('rain-container').style.display = show ? "block" : "none";
+        if(show) document.getElementById('visual-area').style.filter = "grayscale(30%)";
+    }
 
-  if(h>=6 && h<18){
-    world.classList.remove("night");
-    const p=(h-6)/12;
-    sun.style.left=p*100+"%";
-    sun.style.top=(20+Math.abs(p-.5)*40)+"%";
-    moon.style.top="120%";
-  }else{
-    world.classList.add("night");
-    const nh=h>=18?h-18:h+6;
-    const p=nh/12;
-    moon.style.left=p*100+"%";
-    moon.style.top=(20+Math.abs(p-.5)*40)+"%";
-    sun.style.top="120%";
-  }
-}
+    // --- 4. API FUNCTIONS (LOCKED) ---
+    function saveKey() {
+        const input = document.getElementById("apiKeyInput").value.trim();
+        if (input.startsWith("AIza")) {
+            localStorage.setItem("gemini_key_auto_detect", input);
+            API_KEY = input;
+            document.getElementById("key-modal").style.display = "none";
+            addBot("Key Saved! Detecting Model... 📡");
+            autoDetectModel();
+        } else { alert("Invalid Key!"); }
+    }
 
-/* ================= STARS ================= */
-function createStars(){
-  stars.innerHTML="";
-  for(let i=0;i<120;i++){
-    const s=document.createElement("div");
-    s.className="star";
-    s.style.left=Math.random()*100+"%";
-    s.style.top=Math.random()*60+"%";
-    s.style.opacity=Math.random();
-    stars.appendChild(s);
-  }
-}
+    async function autoDetectModel() {
+        try {
+            const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${API_KEY}`);
+            const data = await res.json();
+            if(!res.ok) throw new Error();
+            
+            const valid = data.models.filter(m => m.supportedGenerationMethods.includes("generateContent"));
+            const best = valid.find(m => m.name.includes("1.5-flash")) || valid[0];
+            
+            if(best) {
+                SELECTED_MODEL = best.name.replace("models/", "");
+                document.getElementById("status").innerText = "● Online";
+                addBot(`✅ Connected via: ${SELECTED_MODEL}`);
+            }
+        } catch(e) {
+            SELECTED_MODEL = "gemini-1.5-flash"; // Fallback
+            document.getElementById("status").innerText = "● Force Mode";
+        }
+    }
 
-window.onload=()=>{
-  fetchWeather();
-  updateSky();
-  createStars();
-  setInterval(updateSky,60000);
-};
+    function clearKey() {
+        if(confirm("Reset API Key?")) {
+            localStorage.removeItem("gemini_key_auto_detect");
+            location.reload();
+        }
+    }
+
+    // --- 5. INTERACTION ---
+    function interact(type) {
+        const r = document.getElementById("karishma");
+        r.classList.add("dance");
+        setTimeout(() => r.classList.remove("dance"), 500);
+        
+        let t = "";
+        if(type === 'head') t = "User pets your head. React with anime sound.";
+        if(type === 'tummy') t = "User pokes your tummy. Be shy.";
+        if(type === 'hand') t = "User holds your hand. Be happy.";
+        if(type === 'pond') t = "User looks at the water.";
+        if(type === 'tree') t = "User admires nature.";
+        
+        callAI(t, true);
+    }
+
+    // --- 6. CHAT LOGIC ---
+    function addBot(t) {
+        const d = document.createElement("div"); d.className = "msg b-msg"; d.innerText = t;
+        const c = document.getElementById("chat"); c.appendChild(d); c.scrollTop = c.scrollHeight;
+    }
+    function addUser(t) {
+        const d = document.createElement("div"); d.className = "msg u-msg"; d.innerText = t;
+        const c = document.getElementById("chat"); c.appendChild(d); c.scrollTop = c.scrollHeight;
+    }
+    function send() {
+        const i = document.getElementById("inp"); const v = i.value.trim();
+        if(!v) return; addUser(v); i.value = ""; callAI(v, false);
+    }
+
+    async function callAI(text, hidden) {
+        if(!SELECTED_MODEL) return;
+        const status = document.getElementById("status");
+        if(!hidden) status.innerText = "Thinking...";
+        
+        let msgs = [...history];
+        if(hidden) msgs.push({role: "user", parts: [{text: `[ACTION]: ${text}`}]});
+        else {
+            history.push({role: "user", parts: [{text: text}]});
+            msgs = [...history];
+        }
+
+        try {
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/${SELECTED_MODEL}:generateContent?key=${API_KEY}`;
+            const res = await fetch(url, {
+                method: "POST", headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({ contents: [{role: "user", parts: [{text: SYSTEM_PROMPT}]}, ...msgs] })
+            });
+            const data = await res.json();
+            if (data.candidates) {
+                const reply = data.candidates[0].content.parts[0].text;
+                if(!hidden) addBot(reply);
+                else if(!text.includes("User")) addBot(reply);
+                
+                if(!hidden) history.push({role: "model", parts: [{text: reply}]});
+                status.innerText = "● Online";
+            }
+        } catch(e) { status.innerText = "Error"; }
+    }
 </script>
 
 </body>
