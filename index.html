@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Karishma AI: Alive</title>
+<title>Karishma: Voice Enabled</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎀</text></svg>">
 
 <style>
@@ -22,7 +22,7 @@
     * { box-sizing: border-box; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
     body { margin: 0; padding: 0; width: 100vw; height: 100vh; height: 100dvh; overflow: hidden; background: #000; font-family: 'Segoe UI', system-ui, sans-serif; display: flex; flex-direction: column; }
 
-    /* ================= LAYOUT (Mobile Optimized) ================= */
+    /* ================= LAYOUT ================= */
     #visual-area { 
         flex: 6; position: relative; overflow: hidden; 
         background: var(--sky-day); transition: background 2s ease; 
@@ -31,17 +31,13 @@
     #visual-area.night { background: var(--sky-night); }
     
     #chat-area { 
-        flex: 4; /* Fixed proportions */
-        background: #f4f7f6; 
+        flex: 4; background: #f4f7f6; 
         display: flex; flex-direction: column; 
-        width: 100%; 
-        box-shadow: 0 -10px 30px rgba(0,0,0,0.15); 
-        z-index: 100;
-        border-radius: 20px 20px 0 0;
+        width: 100%; box-shadow: 0 -10px 30px rgba(0,0,0,0.15); 
+        z-index: 100; border-radius: 20px 20px 0 0;
         overflow: hidden;
     }
 
-    /* Desktop View */
     @media (min-width: 800px) { 
         body { flex-direction: row; } 
         #visual-area { flex: 6; height: 100%; border-radius: 0; } 
@@ -50,75 +46,67 @@
 
     /* ================= WORLD OBJECTS ================= */
     
-    /* Sun & Moon (Interactable) */
+    /* Sun & Moon */
     .celestial { position: absolute; width: 70px; height: 70px; border-radius: 50%; left: 50%; top: 110%; transition: 1s; z-index: 1; cursor: pointer; }
-    #sun { 
-        background: radial-gradient(circle, #fff, #ffd700);
-        box-shadow: 0 0 60px 20px rgba(255, 215, 0, 0.6), 0 0 100px rgba(255, 140, 0, 0.4); 
-    }
+    #sun { background: radial-gradient(circle, #fff, #ffd700); box-shadow: 0 0 60px 20px rgba(255, 215, 0, 0.6); }
     #moon { background: radial-gradient(#fff, #ccc); box-shadow: 0 0 30px #fff; }
 
-    /* Mountains */
+    /* Mountains (SOLID - Fixes Transparency Issue) */
     .mountains { position: absolute; bottom: 25%; width: 100%; z-index: 2; pointer-events: none; }
-    .mtn { position: absolute; bottom: 0; width: 0; height: 0; border-left: 120px solid transparent; border-right: 120px solid transparent; border-bottom: 200px solid rgba(0,0,0,0.2); }
-    .m1 { left: -60px; bottom: -30px; border-bottom-color: #512da8; opacity: 0.6; }
-    .m2 { right: -30px; bottom: -20px; border-width: 0 180px 250px 180px; border-bottom-color: #311b92; opacity: 0.5; }
+    .mtn { position: absolute; bottom: 0; width: 0; height: 0; border-left: 120px solid transparent; border-right: 120px solid transparent; border-bottom: 200px solid #2c3e50; } /* Solid Color */
+    .m1 { left: -50px; bottom: -20px; border-bottom-color: #3f51b5; z-index: 2; }
+    .m2 { right: -30px; bottom: -10px; border-width: 0 180px 280px 180px; border-bottom-color: #303f9f; z-index: 1; }
 
-    /* Ground (Interactable) */
+    /* Ground */
     .ground { position: absolute; bottom: 0; width: 100%; height: 28%; background: linear-gradient(#66bb6a, #2e7d32); z-index: 3; cursor: pointer; }
     
-    /* Road (Centered & Separated) */
+    /* Road (Fixed Layout) */
     .road {
         position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
-        width: 140px; height: 28%; background: #555;
-        clip-path: polygon(20% 0, 80% 0, 100% 100%, 0% 100%); z-index: 4; cursor: pointer;
+        width: 120px; /* Narrower to avoid pond */
+        height: 28%; background: #555;
+        clip-path: polygon(25% 0, 75% 0, 100% 100%, 0% 100%); z-index: 4; cursor: pointer;
     }
     .road::after { content: ''; position: absolute; left: 48%; width: 4%; height: 100%; background: dashed #fff; }
 
-    /* Pond (Moved Right - No overlap) */
+    /* Pond (Moved away from road) */
     .pond {
-        position: absolute; bottom: 5%; right: 5%; width: 130px; height: 45px;
-        background: rgba(33, 150, 243, 0.7); border-radius: 50%;
+        position: absolute; bottom: 5%; right: 2%; /* Pushed to edge */
+        width: 110px; height: 40px;
+        background: rgba(33, 150, 243, 0.8); border-radius: 50%;
         border: 2px solid rgba(255,255,255,0.5); z-index: 5;
         box-shadow: inset 0 0 20px rgba(0,0,100,0.2); cursor: pointer;
-        transition: transform 0.2s;
     }
-    .pond:active { transform: scale(0.95); }
 
-    /* Grass Tufts & Bushes */
+    /* Bushes (Small Trees) */
     .bush {
-        position: absolute; bottom: 15%; width: 30px; height: 20px;
-        background: #1b5e20; border-radius: 20px 20px 0 0; z-index: 5;
-        box-shadow: 15px 5px 0 #2e7d32; pointer-events: none;
+        position: absolute; bottom: 15%; width: 40px; height: 30px;
+        background: #1b5e20; border-radius: 50% 50% 0 0; z-index: 6;
+        box-shadow: inset -5px -5px 10px rgba(0,0,0,0.3); pointer-events: none;
     }
-    .b1 { left: 10%; bottom: 20%; transform: scale(1.5); }
-    .b2 { right: 20%; bottom: 12%; }
+    .b1 { left: 15%; } /* Left Bush */
+    .b2 { right: 25%; } /* Right Bush */
 
-    /* REALISTIC BIRD FLIGHT (Wings flap opposite) */
-    .css-bird {
-        position: absolute; width: 30px; height: 10px; z-index: 10;
-        animation: flyAcross 25s linear infinite; top: 15%;
+    /* Trees (Far Edges) */
+    .tree { position: absolute; bottom: 20%; z-index: 5; width: 60px; height: 120px; cursor: pointer; }
+    .trunk { width: 10px; height: 40px; background: #5d4037; margin: 80px auto 0; }
+    .leaves { 
+        width: 60px; height: 90px; background: #2e7d32; border-radius: 50%; 
+        position: absolute; top: 0; left: 0; 
+        box-shadow: inset -5px -5px 10px rgba(0,0,0,0.2);
     }
-    .wing {
-        width: 15px; height: 8px; position: absolute; top: 0;
-        background: #222; border-radius: 50% 50% 0 0;
-    }
-    /* Left wing flaps up-down from right pivot */
-    .wing-l { 
-        left: 0; transform-origin: right bottom; 
-        animation: flapLeft 0.3s infinite alternate ease-in-out; 
-    }
-    /* Right wing flaps up-down from left pivot */
-    .wing-r { 
-        right: 0; transform-origin: left bottom; 
-        animation: flapRight 0.3s infinite alternate ease-in-out; 
-    }
+
+    /* Birds (Flapping Opposite) */
+    .css-bird { position: absolute; width: 30px; height: 10px; z-index: 10; animation: flyAcross 25s linear infinite; top: 15%; }
+    .wing { width: 15px; height: 8px; position: absolute; top: 0; background: #222; border-radius: 50% 50% 0 0; }
+    .wing-l { left: 0; transform-origin: right bottom; animation: flapL 0.3s infinite alternate; }
+    .wing-r { right: 0; transform-origin: left bottom; animation: flapR 0.3s infinite alternate; }
     
     @keyframes flyAcross { 0% { left: -10%; transform: translateY(0); } 100% { left: 110%; transform: translateY(-30px); } }
-    @keyframes flapLeft { 0% { transform: rotate(0deg); } 100% { transform: rotate(40deg); } }
-    @keyframes flapRight { 0% { transform: rotate(0deg); } 100% { transform: rotate(-40deg); } }
+    @keyframes flapL { 0% { transform: rotate(0deg); } 100% { transform: rotate(40deg); } }
+    @keyframes flapR { 0% { transform: rotate(0deg); } 100% { transform: rotate(-40deg); } }
 
-    /* ================= ROBOT GIRL (Anime Style) ================= */
+    /* ================= ROBOT GIRL ================= */
     .robot {
         position: absolute; bottom: 15%; left: 50%; transform: translateX(-50%);
         z-index: 20; display: flex; flex-direction: column; align-items: center;
@@ -130,38 +118,21 @@
         border-radius: 40px 40px 35px 35px; position: relative; z-index: 2;
         border: 2px solid #ffcae0; cursor: pointer;
     }
-    .r-hair {
-        position: absolute; top: -5px; width: 104%; left: -2%; height: 40px;
-        background: #333; border-radius: 40px 40px 0 0; z-index: 3;
-    }
-    .headphone {
-        width: 15px; height: 35px; background: var(--robot-neon);
-        position: absolute; top: 35px; border-radius: 5px; box-shadow: 0 0 10px var(--robot-neon);
-    }
+    .r-hair { position: absolute; top: -5px; width: 104%; left: -2%; height: 40px; background: #333; border-radius: 40px 40px 0 0; z-index: 3; }
+    .headphone { width: 15px; height: 35px; background: var(--robot-neon); position: absolute; top: 35px; border-radius: 5px; }
     .hp-l { left: -12px; } .hp-r { right: -12px; }
     
     .r-eyes { position: absolute; top: 45px; width: 100%; display: flex; justify-content: center; gap: 18px; z-index: 3; }
-    .r-eye {
-        width: 18px; height: 26px; background: #222; border-radius: 50%; position: relative;
-        animation: blink 4s infinite;
-    }
+    .r-eye { width: 18px; height: 26px; background: #222; border-radius: 50%; position: relative; animation: blink 4s infinite; }
     .r-eye::after { content:''; position:absolute; top:5px; right:4px; width:6px; height:6px; background:white; border-radius:50%; }
     
     .r-body {
-        width: 55px; height: 70px; background: white;
-        margin-top: -10px; border-radius: 15px; border: 2px solid #ddd;
-        position: relative; z-index: 1; display: flex; justify-content: center; align-items: center;
-        cursor: pointer;
+        width: 55px; height: 70px; background: white; margin-top: -10px; border-radius: 15px; border: 2px solid #ddd;
+        position: relative; z-index: 1; display: flex; justify-content: center; align-items: center; cursor: pointer;
     }
-    .r-core {
-        width: 20px; height: 20px; background: var(--robot-neon); border-radius: 50%;
-        box-shadow: 0 0 15px var(--robot-neon); animation: pulse 2s infinite;
-    }
+    .r-core { width: 20px; height: 20px; background: var(--robot-neon); border-radius: 50%; box-shadow: 0 0 15px var(--robot-neon); animation: pulse 2s infinite; }
     
-    .r-arm {
-        width: 12px; height: 50px; background: white; border: 2px solid #ddd;
-        border-radius: 10px; position: absolute; top: 25px; cursor: pointer;
-    }
+    .r-arm { width: 12px; height: 50px; background: white; border: 2px solid #ddd; border-radius: 10px; position: absolute; top: 25px; cursor: pointer; }
     .arm-l { left: -15px; transform: rotate(15deg); }
     .arm-r { right: -15px; transform: rotate(-15deg); }
 
@@ -169,53 +140,20 @@
     @keyframes pulse { 0%{transform:scale(1)} 50%{transform:scale(1.2)} }
     .jump { animation: jumpAnim 0.5s ease 2; }
     @keyframes jumpAnim { 0%,100%{transform:translateX(-50%) translateY(0)} 50%{transform:translateX(-50%) translateY(-20px)} }
-    .shake { animation: shakeAnim 0.5s ease; }
-    @keyframes shakeAnim { 0%,100%{transform:translateX(-50%)} 25%{transform:translateX(-50%) rotate(-5deg)} 75%{transform:translateX(-50%) rotate(5deg)} }
 
     /* ================= CHAT UI ================= */
-    .chat-header {
-        padding: 12px 20px; background: #fff; font-weight: bold; font-size: 15px;
-        display: flex; justify-content: space-between; align-items: center;
-        border-bottom: 1px solid #eee; color: #333;
-    }
+    .chat-header { padding: 12px 20px; background: #fff; font-weight: bold; font-size: 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; }
     .badge { font-size: 10px; padding: 4px 10px; border-radius: 12px; background: #e0f2f1; color: #00695c; }
-    
-    .chat-history { 
-        flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 12px; 
-        background: #f4f7f6; scroll-behavior: smooth;
-    }
-    .msg { 
-        padding: 12px 16px; border-radius: 18px; font-size: 15px; max-width: 80%; 
-        line-height: 1.4; box-shadow: 0 2px 5px rgba(0,0,0,0.05); position: relative;
-    }
-    .u-msg { 
-        align-self: flex-end; background: var(--msg-user); color: white; 
-        border-bottom-right-radius: 4px; 
-    }
-    .b-msg { 
-        align-self: flex-start; background: var(--msg-bot); border: 1px solid #e0e0e0; 
-        color: #333; border-bottom-left-radius: 4px; 
-    }
-    
-    .input-area { 
-        padding: 15px; background: #fff; display: flex; gap: 10px; 
-        border-top: 1px solid #eee; align-items: center;
-    }
-    input { 
-        flex: 1; padding: 12px 18px; border-radius: 25px; border: 1px solid #ddd; 
-        outline: none; font-size: 16px; background: #f9f9f9;
-    }
-    input:focus { border-color: var(--accent); background: #fff; }
-    button { 
-        width: 45px; height: 45px; border-radius: 50%; border: none; 
-        background: var(--accent); color: white; font-size: 18px; cursor: pointer;
-        display: flex; justify-content: center; align-items: center;
-        box-shadow: 0 4px 10px rgba(255, 64, 129, 0.3);
-    }
+    .chat-history { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 12px; background: #f4f7f6; scroll-behavior: smooth; }
+    .msg { padding: 12px 16px; border-radius: 18px; font-size: 15px; max-width: 80%; line-height: 1.4; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+    .u-msg { align-self: flex-end; background: var(--msg-user); color: white; border-bottom-right-radius: 4px; }
+    .b-msg { align-self: flex-start; background: var(--msg-bot); border: 1px solid #e0e0e0; color: #333; border-bottom-left-radius: 4px; }
+    .input-area { padding: 15px; background: #fff; display: flex; gap: 10px; border-top: 1px solid #eee; align-items: center; }
+    input { flex: 1; padding: 12px 18px; border-radius: 25px; border: 1px solid #ddd; outline: none; font-size: 16px; background: #f9f9f9; }
+    button { width: 45px; height: 45px; border-radius: 50%; border: none; background: var(--accent); color: white; font-size: 18px; cursor: pointer; }
 
     /* ================= OVERLAYS ================= */
     .weather-box { position: absolute; top: 15px; left: 15px; background: rgba(0,0,0,0.6); color: white; padding: 6px 12px; border-radius: 15px; font-size: 11px; z-index: 50; }
-    
     #key-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 999; display: flex; justify-content: center; align-items: center; }
     .modal-content { background: white; padding: 25px; border-radius: 15px; width: 85%; max-width: 350px; text-align: center; }
     .key-in { width: 100%; padding: 10px; margin: 15px 0; border: 1px solid #ccc; border-radius: 5px; }
@@ -228,7 +166,7 @@
 <div id="key-modal" style="display:none;">
     <div class="modal-content">
         <h3>🎀 Karishma Setup</h3>
-        <p>Paste your <strong>Gemini API Key</strong> to start.</p>
+        <p>Paste your <strong>Gemini API Key</strong>.</p>
         <input type="password" id="apiKeyInput" class="key-in" placeholder="AIza...">
         <button class="btn-main" onclick="saveKey()">Connect</button>
         <p style="font-size:11px; margin-top:10px;"><a href="https://aistudio.google.com/app/apikey" target="_blank">Get Free Key</a></p>
@@ -236,7 +174,7 @@
 </div>
 
 <div id="visual-area">
-    <div class="weather-box" id="weather">📍 Kalain Area: Detecting...</div>
+    <div class="weather-box" id="weather">📍 Locating...</div>
     
     <div id="sun" class="celestial" onclick="interact('sun')"></div>
     <div id="moon" class="celestial" onclick="interact('moon')"></div>
@@ -247,13 +185,15 @@
     </div>
 
     <div class="ground" onclick="interact('grass')"></div>
-    <div class="bush b1"></div>
-    <div class="bush b2"></div>
-
-    <div class="road" onclick="interact('road')"></div>
     
+    <div class="road" onclick="interact('road')"></div>
     <div class="pond" onclick="interact('pond')"></div>
     
+    <div class="bush b1"></div>
+    <div class="bush b2"></div>
+    <div class="tree" style="left:2%" onclick="interact('tree')"><div class="leaves"></div><div class="trunk"></div></div>
+    <div class="tree" style="right:2%" onclick="interact('tree')"><div class="leaves"></div><div class="trunk"></div></div>
+
     <div class="css-bird" style="top:15%; animation-duration:25s;"><div class="wing wing-l"></div><div class="wing wing-r"></div></div>
     <div class="css-bird" style="top:25%; animation-duration:20s; opacity:0.7"><div class="wing wing-l"></div><div class="wing wing-r"></div></div>
 
@@ -290,7 +230,7 @@
     const SYSTEM_PROMPT = `You are Karishma AI. Creator: Abhik Dutta. 
     Location: Kalain/Silchar area.
     Personality: Cute futuristic robot girl. Sassy, helpful, uses emojis.
-    Task: Detect user's language (Bengali, Hindi, English, etc.) and reply in that language.
+    Task: Detect user's language (Bengali, Hindi, English, etc) and reply in that language.
     Keep replies short (max 20 words).`;
     let history = [];
 
@@ -299,7 +239,7 @@
         if (!API_KEY) {
             document.getElementById("key-modal").style.display = "flex";
         } else {
-            addBot("System Online! 🎀");
+            addBot("System Online! Voice Ready. 🎀");
             await autoDetectModel();
         }
         updateSky();
@@ -307,7 +247,24 @@
         setInterval(updateSky, 60000);
     };
 
-    // --- 3. ENVIRONMENT LOGIC ---
+    // --- 3. SPEECH SYNTHESIS (NEW) ---
+    function speak(text) {
+        // Remove emojis for cleaner speech
+        const cleanText = text.replace(/[\u{1F600}-\u{1F6FF}]/gu, ''); 
+        
+        const utterance = new SpeechSynthesisUtterance(cleanText);
+        utterance.pitch = 1.2; // Cute pitch
+        utterance.rate = 1.1; // Slightly faster
+        
+        // Try to pick a female voice
+        const voices = window.speechSynthesis.getVoices();
+        const femaleVoice = voices.find(v => v.name.includes('Female') || v.name.includes('Google US English'));
+        if(femaleVoice) utterance.voice = femaleVoice;
+        
+        window.speechSynthesis.speak(utterance);
+    }
+
+    // --- 4. ENVIRONMENT ---
     function updateSky() {
         const h = new Date().getHours();
         const visual = document.getElementById('visual-area');
@@ -334,11 +291,11 @@
         try {
             const res = await fetch("https://api.open-meteo.com/v1/forecast?latitude=24.83&longitude=92.77&current_weather=true");
             const data = await res.json();
-            w.innerText = `📍 Kalain: ${data.current_weather.temperature}°C`;
+            w.innerText = `📍 Silchar: ${data.current_weather.temperature}°C`;
         } catch(e) { w.innerText = "📍 Weather Offline"; }
     }
 
-    // --- 4. API FUNCTIONS ---
+    // --- 5. API FUNCTIONS ---
     function saveKey() {
         const input = document.getElementById("apiKeyInput").value.trim();
         if (input.startsWith("AIza")) {
@@ -374,28 +331,34 @@
         }
     }
 
-    // --- 5. INTERACTION ---
+    // --- 6. INTERACTION ---
     function interact(type) {
         const r = document.getElementById("karishma");
         let prompt = "";
         
-        if(type === 'head') { r.classList.add("jump"); prompt = "User pats your head. Be happy!"; }
-        else if(type === 'tummy') { r.classList.add("shake"); prompt = "User pokes your tummy. Be shy!"; }
-        else if(type === 'hand') { r.classList.add("jump"); prompt = "User holds your hand."; }
-        else if(type === 'pond') { prompt = "User touches the water."; }
-        else if(type === 'grass') { prompt = "User touches the grass."; }
-        else if(type === 'road') { prompt = "User walks on the road."; }
-        else if(type === 'sun') { prompt = "User points at the Sun."; }
-        else if(type === 'moon') { prompt = "User points at the Moon."; }
+        r.classList.add("jump"); // Generic animation
+        setTimeout(() => r.classList.remove("jump"), 500);
 
-        setTimeout(() => r.classList.remove("jump", "shake"), 1000);
+        if(type === 'head') prompt = "User pats your head.";
+        else if(type === 'tummy') prompt = "User pokes your tummy.";
+        else if(type === 'hand') prompt = "User holds your hand.";
+        else if(type === 'pond') prompt = "User touches the pond.";
+        else if(type === 'grass') prompt = "User touches the grass.";
+        else if(type === 'road') prompt = "User touches the road.";
+        else if(type === 'sun') prompt = "User points at the Sun.";
+        else if(type === 'moon') prompt = "User points at the Moon.";
+        else if(type === 'tree') prompt = "User touches a tree.";
+
         callAI(prompt, true);
     }
 
-    // --- 6. CHAT LOGIC ---
+    // --- 7. CHAT LOGIC ---
     function addBot(t) {
         const d = document.createElement("div"); d.className = "msg b-msg"; d.innerText = t;
         const c = document.getElementById("chat"); c.appendChild(d); c.scrollTop = c.scrollHeight;
+        
+        // Trigger Voice
+        speak(t);
     }
     function addUser(t) {
         const d = document.createElement("div"); d.className = "msg u-msg"; d.innerText = t;
@@ -411,12 +374,9 @@
         const status = document.getElementById("status");
         if(!hidden) status.innerText = "Thinking...";
         
-        // ADD REAL TIME TO CONTEXT
         const time = new Date().toLocaleTimeString();
-        let contextText = `[CURRENT TIME: ${time}] ${hidden ? '[ACTION]: ' : ''}${text}`;
-
         let msgs = [...history];
-        msgs.push({role: "user", parts: [{text: contextText}]});
+        msgs.push({role: "user", parts: [{text: `[TIME: ${time}] ${hidden ? '[ACTION]: ' : ''}${text}`}]});
 
         try {
             const url = `https://generativelanguage.googleapis.com/v1beta/models/${SELECTED_MODEL}:generateContent?key=${API_KEY}`;
@@ -430,7 +390,6 @@
                 if(!hidden) addBot(reply);
                 else if(!text.includes("User")) addBot(reply);
                 
-                // Only save actual chat to history, not time context every time
                 if(!hidden) {
                     history.push({role: "user", parts: [{text: text}]});
                     history.push({role: "model", parts: [{text: reply}]});
