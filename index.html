@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Karishma AI: Fresh Start</title>
+<title>Karishma AI: Fixed</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎀</text></svg>">
 
 <style>
@@ -95,9 +95,9 @@
 <div id="key-modal" style="display:none;">
     <div class="modal-box">
         <h2>🎀 Setup Karishma</h2>
-        <p>Your old key Expired!</p>
-        <p>Please paste a <strong>NEW Key</strong> below.</p>
-        <input type="password" id="apiKeyInput" class="key-input" placeholder="Paste NEW AIza... key here">
+        <p>I have forgotten the old key!</p>
+        <p>Please paste the <strong>NEW Key</strong> below.</p>
+        <input type="password" id="apiKeyInput" class="key-input" placeholder="Paste AIza... key here">
         <button class="save-btn" onclick="saveKey()">Save & Start</button>
         <p style="font-size:12px; margin-top:15px; cursor:pointer; color:blue;" onclick="window.open('https://aistudio.google.com/app/apikey')">Get New Key (Free)</p>
     </div>
@@ -127,8 +127,11 @@
 </div>
 
 <script>
-    // --- VARIABLES ---
-    let API_KEY = localStorage.getItem("gemini_key_v2"); // Use v2 to force new key entry
+    // --- FORCE NEW KEY SLOT ---
+    // I changed this variable name. Your browser won't find the old one,
+    // so it will force the popup to appear.
+    let API_KEY = localStorage.getItem("gemini_key_v3_new"); 
+    
     const MODEL_NAME = "gemini-1.5-flash"; 
     
     const SYSTEM_PROMPT = `You are Karishma AI. Creator: Abhik Dutta.
@@ -137,12 +140,11 @@
 
     let history = [];
 
-    // --- STARTUP ---
     window.onload = () => {
         if (!API_KEY) {
             document.getElementById("key-modal").style.display = "flex";
         } else {
-            addBot("Namaste! Using saved key. 🎀");
+            addBot("Namaste! Key loaded. I'm ready! 🎀");
             initVisuals();
         }
     };
@@ -150,7 +152,7 @@
     function saveKey() {
         const input = document.getElementById("apiKeyInput").value.trim();
         if (input.startsWith("AIza")) {
-            localStorage.setItem("gemini_key_v2", input);
+            localStorage.setItem("gemini_key_v3_new", input);
             API_KEY = input;
             document.getElementById("key-modal").style.display = "none";
             addBot("New Key Saved! Try typing 'Hi'. ✨");
@@ -162,7 +164,7 @@
 
     function clearKey() {
         if(confirm("Enter a new API Key?")) {
-            localStorage.removeItem("gemini_key_v2");
+            localStorage.removeItem("gemini_key_v3_new");
             location.reload();
         }
     }
