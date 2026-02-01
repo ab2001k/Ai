@@ -148,19 +148,18 @@
         
         <label>Select Model:</label>
         <select id="modelSelector" onchange="updateKeyPlaceholder()">
-            <optgroup label="Groq (Best for Chit-Chat - FAST)">
-                <option value="groq/llama-3.3-70b-versatile">Llama 3.3 70B (Best)</option>
+            <optgroup label="Groq (Ultra-Fast & Free Tier)">
                 <option value="groq/llama-3.1-8b-instant">Llama 3.1 8B (Fastest)</option>
-                <option value="groq/gemma2-9b-it">Gemma 2 9B (Google)</option>
+                <option value="groq/llama-3.3-70b-versatile">Llama 3.3 70B (Smartest)</option>
             </optgroup>
-            <optgroup label="Google Gemini (Requires API Key)">
-                <option value="gemini-1.5-flash">Gemini 1.5 Flash (Recommended)</option>
-                <option value="gemini-1.5-flash-8b">Gemini 1.5 Flash 8B</option>
+            <optgroup label="Google Gemini (Stable & Lite)">
+                <option value="gemini-2.5-flash-lite">Gemini 2.5 Flash-Lite (Fast/Low Cost)</option>
+                <option value="gemini-2.5-flash">Gemini 2.5 Flash (Balanced)</option>
+                <option value="gemini-1.5-flash">Gemini 1.5 Flash (Fallback)</option>
             </optgroup>
-            <optgroup label="Hugging Face (Requires HF Token)">
+            <optgroup label="Hugging Face">
                 <option value="mistralai/Mistral-7B-Instruct-v0.3">Mistral 7B v0.3</option>
                 <option value="meta-llama/Meta-Llama-3-8B-Instruct">Llama 3 8B Instruct</option>
-                <option value="microsoft/Phi-3-mini-4k-instruct">Phi-3 Mini</option>
             </optgroup>
         </select>
 
@@ -228,7 +227,7 @@
 <script>
     // --- 1. CONFIGURATION & STATE ---
     let CURRENT_CONFIG = {
-        model: "gemini-1.5-flash",
+        model: "gemini-2.5-flash-lite", // Default to new low-token model
         provider: "google", 
         key: ""
     };
@@ -280,29 +279,37 @@
         const helper = document.getElementById("keyHelper");
 
         let storageKey = "";
-        
+        let providerName = "";
+
         if (val.startsWith("gemini")) {
             label.innerText = "Google API Key (AIza...):";
             keyIn.placeholder = "AIza...";
             helper.innerHTML = 'Get Key: <a href="https://aistudio.google.com/app/apikey" target="_blank">Google AI Studio</a>';
             storageKey = "karishma_key_google";
+            providerName = "google";
         } else if (val.startsWith("groq")) {
             label.innerText = "Groq API Key (gsk_...):";
             keyIn.placeholder = "gsk_...";
             helper.innerHTML = 'Get Key: <a href="https://console.groq.com/keys" target="_blank">Groq Cloud (Free Beta)</a>';
             storageKey = "karishma_key_groq";
+            providerName = "groq";
         } else {
             label.innerText = "Hugging Face Token (hf_...):";
             keyIn.placeholder = "hf_...";
             helper.innerHTML = 'Get Token: <a href="https://huggingface.co/settings/tokens" target="_blank">Hugging Face Settings</a>';
             storageKey = "karishma_key_hf";
+            providerName = "huggingface";
         }
 
+        // --- FIX: Auto-Load Key immediately on switching dropdown ---
         const savedKey = localStorage.getItem(storageKey);
         if (savedKey) {
             keyIn.value = savedKey;
+            CURRENT_CONFIG.key = savedKey;
+            CURRENT_CONFIG.provider = providerName;
         } else {
             keyIn.value = "";
+            CURRENT_CONFIG.key = ""; 
         }
     }
 
@@ -518,10 +525,10 @@
             body: JSON.stringify(payload)
         });
 
-        // FIXED: 404 handling. If Pro fails, fallback to Flash immediately
+        // FIXED: 404 handling. If 2.5 fails (not rolled out to your key), fallback to 1.5 Flash
         if (res.status === 404 || res.status === 503) {
-             if (!retryModel) {
-                 // Silent Switch to Flash
+             if (!retryModel && modelToUse !== "gemini-1.5-flash") {
+                 // Silent Switch to 1.5 Flash
                  return await fetchGeminiSafe(text, "gemini-1.5-flash"); 
              }
              throw new Error("Gemini API Error: " + res.status);
@@ -536,15 +543,15 @@
         return data.candidates[0].content.parts[0].text;
     }
 
-    // 2. GROQ FIXED (Strict role names & models & Key validation)
+    // 2. GROQ FIXED (Updated Models from Docs)
     async function fetchGroq(text) {
         const url = "https://api.groq.com/openai/v1/chat/completions";
         const model = CURRENT_CONFIG.model.replace("groq/", "");
 
+        // Updated allowed models based on your documentation
         const allowedModels = [
-            "llama-3.3-70b-versatile",
             "llama-3.1-8b-instant",
-            "gemma2-9b-it"
+            "llama-3.3-70b-versatile"
         ];
         
         if (!allowedModels.includes(model)) {
