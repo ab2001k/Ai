@@ -147,18 +147,17 @@
         <label>Select Model:</label>
         <select id="modelSelector" onchange="updateKeyPlaceholder()">
             <optgroup label="Groq (Best for Chit-Chat - FAST)">
-                <option value="groq/llama3-8b-8192">Llama 3 8B (Super Fast)</option>
-                <option value="groq/llama3-70b-8192">Llama 3 70B (Intelligent)</option>
+                <option value="groq/llama-3.3-70b-versatile">Llama 3.3 70B (Best)</option>
+                <option value="groq/llama-3.1-8b-instant">Llama 3.1 8B (Fastest)</option>
                 <option value="groq/gemma2-9b-it">Gemma 2 9B (Google)</option>
             </optgroup>
             <optgroup label="Google Gemini (Requires API Key)">
                 <option value="gemini-1.5-flash">Gemini 1.5 Flash (Recommended)</option>
                 <option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
-                <option value="gemini-1.0-pro">Gemini 1.0 Pro (Stable)</option>
+                <option value="gemini-2.0-flash-exp">Gemini 2.0 Flash (Exp)</option>
             </optgroup>
             <optgroup label="Hugging Face (Requires HF Token)">
-                <option value="mistralai/Mistral-7B-Instruct-v0.2">Mistral 7B Instruct</option>
-                <option value="google/gemma-7b-it">Gemma 7B IT</option>
+                <option value="mistralai/Mistral-7B-Instruct-v0.3">Mistral 7B v0.3</option>
                 <option value="meta-llama/Meta-Llama-3-8B-Instruct">Llama 3 8B Instruct</option>
                 <option value="microsoft/Phi-3-mini-4k-instruct">Phi-3 Mini</option>
             </optgroup>
@@ -429,6 +428,7 @@
             else if(!text.includes("User")) addBot(reply);
 
             if(!hidden) {
+                // Store using INTERNAL role names, providers will translate later
                 history.push({role: "user", text: text});
                 history.push({role: "model", text: reply});
                 if(history.length > 10) history = history.slice(-10);
@@ -439,6 +439,9 @@
             console.error(e);
             if(fallback) addBot(fallback);
             else addBot(`⚠️ Error: ${e.message}`);
+            
+            // Clean history on error to prevent loops
+            history.pop(); 
             status.innerText = "Error";
         }
     }
@@ -478,26 +481,33 @@
 
             } catch(e) {
                 lastError = e;
-                if(!e.message.includes("API_FAIL")) break; // If it's a key error, stop.
+                if(!e.message.includes("API_FAIL")) break; 
             }
         }
 
-        // If specific model failed, try generic fallback ONCE
         if (!retryModel && (lastError.message.includes("404") || lastError.message.includes("503"))) {
             addBot("⚠️ Auto-Switching to Backup Model...");
-            return await fetchGeminiSafe(text, "gemini-pro"); // Fallback to stable model
+            return await fetchGeminiSafe(text, "gemini-1.5-flash"); 
         }
 
         throw lastError;
     }
 
-    // 2. Groq (Fastest)
+    // 2. Groq (Fastest - FIXED 400 ERROR)
     async function fetchGroq(text) {
         const url = "https://api.groq.com/openai/v1/chat/completions";
-        const model = CURRENT_CONFIG.model.replace("groq/", ""); // Remove prefix
+        const model = CURRENT_CONFIG.model.replace("groq/", ""); 
 
         let msgs = [{role: "system", content: SYSTEM_PROMPT}];
-        history.forEach(h => msgs.push({role: h.role, content: h.text}));
+        
+        // FIXED: Translates 'model' (Google style) to 'assistant' (OpenAI/Groq style)
+        history.forEach(h => {
+            msgs.push({
+                role: h.role === "user" ? "user" : "assistant",
+                content: h.text
+            });
+        });
+
         msgs.push({role: "user", content: text});
 
         const res = await fetch(url, {
@@ -509,11 +519,14 @@
             body: JSON.stringify({
                 model: model,
                 messages: msgs,
-                max_tokens: 100
+                max_tokens: 150
             })
         });
 
-        if(!res.ok) throw new Error("Groq Error: " + res.status);
+        if(!res.ok) {
+            const errData = await res.json();
+            throw new Error(`Groq Error: ${res.status} - ${errData.error?.message || 'Unknown'}`);
+        }
         const data = await res.json();
         return data.choices[0].message.content;
     }
@@ -534,8 +547,8 @@
             },
             body: JSON.stringify({ 
                 inputs: fullPrompt,
-                parameters: { max_new_tokens: 100, return_full_text: false },
-                options: { wait_for_model: true } // Auto wait if model is asleep
+                parameters: { max_new_tokens: 150, return_full_text: false },
+                options: { wait_for_model: true } 
             })
         });
 
