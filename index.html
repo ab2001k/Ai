@@ -49,7 +49,8 @@
     #sun { background: radial-gradient(circle, #fff, #ffd700); box-shadow: 0 0 60px 20px rgba(255, 215, 0, 0.6); }
     #moon { background: radial-gradient(#fff, #ccc); box-shadow: 0 0 30px #fff; }
 
-    .mountains { position: absolute; bottom: 25%; width: 100%; z-index: 2; pointer-events: none; }
+    /* Updated Mountains to be interactive */
+    .mountains { position: absolute; bottom: 25%; width: 100%; z-index: 2; cursor: pointer; pointer-events: auto; }
     .mtn { position: absolute; bottom: 0; width: 0; height: 0; border-left: 120px solid transparent; border-right: 120px solid transparent; border-bottom: 200px solid #2c3e50; } 
     .m1 { left: -50px; bottom: -20px; border-bottom-color: #3f51b5; z-index: 2; }
     .m2 { right: -30px; bottom: -10px; border-width: 0 180px 280px 180px; border-bottom-color: #303f9f; z-index: 1; }
@@ -179,7 +180,7 @@
     <div id="sun" class="celestial" onclick="interact('sun')"></div>
     <div id="moon" class="celestial" onclick="interact('moon')"></div>
     
-    <div class="mountains"><div class="mtn m1"></div><div class="mtn m2"></div></div>
+    <div class="mountains" onclick="interact('mountain')"><div class="mtn m1"></div><div class="mtn m2"></div></div>
     <div class="ground" onclick="interact('grass')"></div>
     
     <div class="road" onclick="interact('road')"></div>
@@ -254,7 +255,6 @@
     // --- 3. SETTINGS & AUTH ---
     function openSettings() {
         document.getElementById("key-modal").style.display = "flex";
-        // Pre-fill if exists
         document.getElementById("modelSelector").value = CURRENT_CONFIG.model;
         updateKeyPlaceholder(); 
     }
@@ -266,21 +266,38 @@
         const label = document.getElementById("keyLabel");
         const helper = document.getElementById("keyHelper");
 
+        let storageKey = "";
+        let providerName = "";
+
         if (val.startsWith("gemini")) {
             label.innerText = "Google API Key (AIza...):";
             keyIn.placeholder = "AIza...";
             helper.innerHTML = 'Get Key: <a href="https://aistudio.google.com/app/apikey" target="_blank">Google AI Studio</a>';
-            keyIn.value = localStorage.getItem("karishma_key_google") || "";
+            storageKey = "karishma_key_google";
+            providerName = "google";
         } else if (val.startsWith("groq")) {
             label.innerText = "Groq API Key (gsk_...):";
             keyIn.placeholder = "gsk_...";
             helper.innerHTML = 'Get Key: <a href="https://console.groq.com/keys" target="_blank">Groq Cloud (Free Beta)</a>';
-            keyIn.value = localStorage.getItem("karishma_key_groq") || "";
+            storageKey = "karishma_key_groq";
+            providerName = "groq";
         } else {
             label.innerText = "Hugging Face Token (hf_...):";
             keyIn.placeholder = "hf_...";
             helper.innerHTML = 'Get Token: <a href="https://huggingface.co/settings/tokens" target="_blank">Hugging Face Settings</a>';
-            keyIn.value = localStorage.getItem("karishma_key_hf") || "";
+            storageKey = "karishma_key_hf";
+            providerName = "huggingface";
+        }
+
+        // --- FIX: Auto-Load Key immediately on switching dropdown ---
+        const savedKey = localStorage.getItem(storageKey);
+        if (savedKey) {
+            keyIn.value = savedKey;
+            CURRENT_CONFIG.key = savedKey; // Update memory immediately so it works without clicking save
+            CURRENT_CONFIG.provider = providerName;
+        } else {
+            keyIn.value = "";
+            CURRENT_CONFIG.key = ""; // Clear key if none saved
         }
     }
 
@@ -362,6 +379,7 @@
         let prompt = ""; let fallback = "";
         r.classList.add("jump"); setTimeout(() => r.classList.remove("jump"), 500);
 
+        // Smart Interaction Prompts
         if(type === 'head') { prompt = "User pets your head."; fallback = "Hehe! 😽"; }
         else if(type === 'tummy') { prompt = "User taps interface."; fallback = "Tickles! 🤭"; }
         else if(type === 'hand') { prompt = "User holds hand."; fallback = "Friends! 🤝"; }
@@ -371,7 +389,9 @@
         else if(type === 'sun') { prompt = "User points at Sun."; fallback = "Bright! ☀️"; }
         else if(type === 'moon') { prompt = "User points at Moon."; fallback = "Sleepy? 🌙"; }
         else if(type === 'tree') { prompt = "User touches tree."; fallback = "Nature! 🌳"; }
+        else if(type === 'mountain') { prompt = "User points at mountains."; fallback = "High up! 🏔️"; }
 
+        // Use the smart AI to generate the response based on the action
         callAI(prompt, true, fallback);
     }
 
@@ -421,6 +441,7 @@
     async function callAI(text, hidden, fallback) {
         if(!CURRENT_CONFIG.key) {
             if(!hidden) addBot("⚠️ Setup Key first! (Click Gear ⚙️)");
+            else if(fallback) addBot(fallback); // Use fallback if no key
             return;
         }
 
@@ -461,25 +482,21 @@
 
     // --- API HANDLERS ---
 
-    // 1. GEMINI FIXED (Strict alternating turns & System Instruction)
+    // 1. GEMINI FIXED (Strict alternating turns & System Instruction & 404 Fallback)
     async function fetchGeminiSafe(text, retryModel = null) {
         const modelToUse = retryModel || CURRENT_CONFIG.model;
         
-        // Use v1beta to support system_instruction
         const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelToUse}:generateContent?key=${CURRENT_CONFIG.key}`;
         
-        // Correctly format history to strictly alternate: User -> Model -> User
         let geminiHistory = history.map(h => ({
             role: h.role === "user" ? "user" : "model",
             parts: [{text: h.text}]
         }));
 
-        // Add the current message
         geminiHistory.push({role: "user", parts: [{text: text}]});
 
         const payload = {
             contents: geminiHistory,
-            // Move SYSTEM_PROMPT here so it's not counted as a 'User' message
             system_instruction: {
                 parts: [{ text: SYSTEM_PROMPT }]
             }
@@ -490,8 +507,12 @@
             body: JSON.stringify(payload)
         });
 
+        // FIXED: 404 handling. If Pro fails, fallback to Flash immediately
         if (res.status === 404 || res.status === 503) {
-             if (!retryModel) return await fetchGeminiSafe(text, "gemini-1.5-flash"); // Fallback
+             if (!retryModel) {
+                 addBot("⚠️ Model not found, switching to Flash...");
+                 return await fetchGeminiSafe(text, "gemini-1.5-flash"); 
+             }
              throw new Error("Gemini API Error: " + res.status);
         }
         
