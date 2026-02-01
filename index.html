@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Karishma: Multi-Model Core</title>
+<title>Karishma: Auto-Switch Core</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎀</text></svg>">
 
 <style>
@@ -146,21 +146,23 @@
         
         <label>Select Model:</label>
         <select id="modelSelector" onchange="updateKeyPlaceholder()">
-            <optgroup label="Google Gemini (Requires API Key)">
-                <option value="gemini-1.5-flash">Gemini 1.5 Flash (Fast)</option>
-                <option value="gemini-1.5-pro">Gemini 1.5 Pro (Smart)</option>
-                <option value="gemini-1.0-pro">Gemini 1.0 Pro</option>
-                <option value="gemini-1.5-flash-8b">Gemini 1.5 Flash-8B</option>
+            <optgroup label="Groq (Best for Chit-Chat - FAST)">
+                <option value="groq/llama3-8b-8192">Llama 3 8B (Super Fast)</option>
+                <option value="groq/llama3-70b-8192">Llama 3 70B (Intelligent)</option>
+                <option value="groq/gemma2-9b-it">Gemma 2 9B (Google)</option>
             </optgroup>
-            <optgroup label="Hugging Face Free (Requires HF Token)">
+            <optgroup label="Google Gemini (Requires API Key)">
+                <option value="gemini-1.5-flash">Gemini 1.5 Flash (Recommended)</option>
+                <option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
+                <option value="gemini-1.0-pro">Gemini 1.0 Pro (Stable)</option>
+            </optgroup>
+            <optgroup label="Hugging Face (Requires HF Token)">
                 <option value="mistralai/Mistral-7B-Instruct-v0.2">Mistral 7B Instruct</option>
                 <option value="google/gemma-7b-it">Gemma 7B IT</option>
-                <option value="meta-llama/Meta-Llama-3-8B-Instruct">Llama 3 8B</option>
-                <option value="HuggingFaceH4/zephyr-7b-beta">Zephyr 7B Beta</option>
-                <option value="tiiuae/falcon-7b-instruct">Falcon 7B</option>
+                <option value="meta-llama/Meta-Llama-3-8B-Instruct">Llama 3 8B Instruct</option>
                 <option value="microsoft/Phi-3-mini-4k-instruct">Phi-3 Mini</option>
             </optgroup>
-             </select>
+        </select>
 
         <label id="keyLabel">API Key:</label>
         <input type="password" id="apiKeyInput" class="key-in" placeholder="Paste Key Here...">
@@ -224,7 +226,7 @@
     // --- 1. CONFIGURATION & STATE ---
     let CURRENT_CONFIG = {
         model: "gemini-1.5-flash",
-        provider: "google", // 'google' or 'huggingface'
+        provider: "google", 
         key: ""
     };
     
@@ -242,8 +244,8 @@
         if (!CURRENT_CONFIG.key) {
             openSettings();
         } else {
-            addBot(`System Online! 🎀 Using: ${CURRENT_CONFIG.model}`);
-            document.getElementById("modelDisplay").innerText = CURRENT_CONFIG.model.split("/").pop(); // Short name
+            addBot(`System Online! 🎀 Using: ${CURRENT_CONFIG.model.split('/').pop()}`);
+            document.getElementById("modelDisplay").innerText = CURRENT_CONFIG.model.split("/").pop(); 
         }
         updateSky();
         fetchWeather();
@@ -255,7 +257,7 @@
         document.getElementById("key-modal").style.display = "flex";
         // Pre-fill if exists
         document.getElementById("modelSelector").value = CURRENT_CONFIG.model;
-        updateKeyPlaceholder(); // Set correct label text
+        updateKeyPlaceholder(); 
     }
 
     function updateKeyPlaceholder() {
@@ -265,18 +267,20 @@
         const label = document.getElementById("keyLabel");
         const helper = document.getElementById("keyHelper");
 
-        // Simple logic to detect provider based on value prefix or known list
         if (val.startsWith("gemini")) {
             label.innerText = "Google API Key (AIza...):";
             keyIn.placeholder = "AIza...";
             helper.innerHTML = 'Get Key: <a href="https://aistudio.google.com/app/apikey" target="_blank">Google AI Studio</a>';
-            // Try to load saved google key
             keyIn.value = localStorage.getItem("karishma_key_google") || "";
+        } else if (val.startsWith("groq")) {
+            label.innerText = "Groq API Key (gsk_...):";
+            keyIn.placeholder = "gsk_...";
+            helper.innerHTML = 'Get Key: <a href="https://console.groq.com/keys" target="_blank">Groq Cloud (Free Beta)</a>';
+            keyIn.value = localStorage.getItem("karishma_key_groq") || "";
         } else {
             label.innerText = "Hugging Face Token (hf_...):";
             keyIn.placeholder = "hf_...";
             helper.innerHTML = 'Get Token: <a href="https://huggingface.co/settings/tokens" target="_blank">Hugging Face Settings</a>';
-            // Try to load saved HF key
             keyIn.value = localStorage.getItem("karishma_key_hf") || "";
         }
     }
@@ -295,6 +299,9 @@
         if (val.startsWith("gemini")) {
             CURRENT_CONFIG.provider = "google";
             localStorage.setItem("karishma_key_google", key);
+        } else if (val.startsWith("groq")) {
+            CURRENT_CONFIG.provider = "groq";
+            localStorage.setItem("karishma_key_groq", key);
         } else {
             CURRENT_CONFIG.provider = "huggingface";
             localStorage.setItem("karishma_key_hf", key);
@@ -304,8 +311,8 @@
 
         document.getElementById("key-modal").style.display = "none";
         document.getElementById("modelDisplay").innerText = val.split("/").pop();
-        addBot(`Switched to: ${val} ✅`);
-        history = []; // Clear history on model switch to avoid context format errors
+        addBot(`Switched to: ${val.split('/').pop()} ✅`);
+        history = []; 
     }
 
     function loadSettings() {
@@ -315,6 +322,9 @@
             if(lastModel.startsWith("gemini")) {
                 CURRENT_CONFIG.provider = "google";
                 CURRENT_CONFIG.key = localStorage.getItem("karishma_key_google");
+            } else if(lastModel.startsWith("groq")) {
+                CURRENT_CONFIG.provider = "groq";
+                CURRENT_CONFIG.key = localStorage.getItem("karishma_key_groq");
             } else {
                 CURRENT_CONFIG.provider = "huggingface";
                 CURRENT_CONFIG.key = localStorage.getItem("karishma_key_hf");
@@ -393,7 +403,7 @@
         window.speechSynthesis.speak(utterance);
     }
 
-    // --- 7. UNIFIED AI CALLER ---
+    // --- 7. SMART AI CORE ---
     async function callAI(text, hidden, fallback) {
         if(!CURRENT_CONFIG.key) {
             if(!hidden) addBot("⚠️ Setup Key first! (Click Gear ⚙️)");
@@ -407,10 +417,46 @@
             let reply = "";
             
             if (CURRENT_CONFIG.provider === "google") {
-                // GOOGLE GEMINI API
-                const url = `https://generativelanguage.googleapis.com/v1beta/models/${CURRENT_CONFIG.model}:generateContent?key=${CURRENT_CONFIG.key}`;
+                reply = await fetchGeminiSafe(text);
+            } else if (CURRENT_CONFIG.provider === "groq") {
+                reply = await fetchGroq(text);
+            } else if (CURRENT_CONFIG.provider === "huggingface") {
+                reply = await fetchHuggingFace(text);
+            }
+
+            // --- Success ---
+            if(!hidden) addBot(reply);
+            else if(!text.includes("User")) addBot(reply);
+
+            if(!hidden) {
+                history.push({role: "user", text: text});
+                history.push({role: "model", text: reply});
+                if(history.length > 10) history = history.slice(-10);
+            }
+            status.innerText = CURRENT_CONFIG.model.split("/").pop();
+
+        } catch(e) {
+            console.error(e);
+            if(fallback) addBot(fallback);
+            else addBot(`⚠️ Error: ${e.message}`);
+            status.innerText = "Error";
+        }
+    }
+
+    // --- API HANDLERS WITH FALLBACKS ---
+
+    // 1. Google Gemini (With Auto-Repair)
+    async function fetchGeminiSafe(text, retryModel = null) {
+        const modelToUse = retryModel || CURRENT_CONFIG.model;
+        
+        // Try v1beta first, then v1
+        const versions = ["v1beta", "v1"];
+        let lastError = null;
+
+        for (const ver of versions) {
+            try {
+                const url = `https://generativelanguage.googleapis.com/${ver}/models/${modelToUse}:generateContent?key=${CURRENT_CONFIG.key}`;
                 
-                // Format history for Gemini
                 let geminiHistory = history.map(h => ({
                     role: h.role === "user" ? "user" : "model",
                     parts: [{text: h.text}]
@@ -424,63 +470,81 @@
                     })
                 });
 
-                if(res.status !== 200) throw new Error("Gemini API Error: " + res.status);
+                if (res.status === 404 || res.status === 503) throw new Error("API_FAIL_" + res.status);
+                if (!res.ok) throw new Error("Gemini Error: " + res.status);
+
                 const data = await res.json();
-                reply = data.candidates[0].content.parts[0].text;
+                return data.candidates[0].content.parts[0].text;
 
-            } else if (CURRENT_CONFIG.provider === "huggingface") {
-                // HUGGING FACE INFERENCE API
-                const url = `https://api-inference.huggingface.co/models/${CURRENT_CONFIG.model}`;
-                
-                // Construct simple prompt string for HF (since chat formatting varies)
-                // We use a simple instruction format here
-                let fullPrompt = `System: ${SYSTEM_PROMPT}\n`;
-                history.forEach(h => fullPrompt += `${h.role === 'user' ? 'User' : 'Karishma'}: ${h.text}\n`);
-                fullPrompt += `User: ${text}\nKarishma:`;
-
-                const res = await fetch(url, {
-                    method: "POST", 
-                    headers: {
-                        "Authorization": `Bearer ${CURRENT_CONFIG.key}`,
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({ 
-                        inputs: fullPrompt,
-                        parameters: { max_new_tokens: 100, return_full_text: false } 
-                    })
-                });
-
-                if(res.status !== 200) throw new Error("HF API Error: " + res.status);
-                const data = await res.json();
-                
-                // HF returns array of objects, usually generated_text is inside
-                if(Array.isArray(data)) {
-                    reply = data[0].generated_text || "No text returned";
-                } else if(data.generated_text) {
-                    reply = data.generated_text;
-                } else {
-                    reply = JSON.stringify(data);
-                }
+            } catch(e) {
+                lastError = e;
+                if(!e.message.includes("API_FAIL")) break; // If it's a key error, stop.
             }
-
-            // Common Finalization
-            if(!hidden) addBot(reply);
-            else if(!text.includes("User")) addBot(reply);
-
-            if(!hidden) {
-                history.push({role: "user", text: text});
-                history.push({role: "model", text: reply});
-                // Keep history small
-                if(history.length > 10) history = history.slice(-10);
-            }
-            status.innerText = CURRENT_CONFIG.model.split("/").pop();
-
-        } catch(e) {
-            console.error(e);
-            if(fallback) addBot(fallback);
-            else addBot(`⚠️ Error: ${e.message}`);
-            status.innerText = "Error";
         }
+
+        // If specific model failed, try generic fallback ONCE
+        if (!retryModel && (lastError.message.includes("404") || lastError.message.includes("503"))) {
+            addBot("⚠️ Auto-Switching to Backup Model...");
+            return await fetchGeminiSafe(text, "gemini-pro"); // Fallback to stable model
+        }
+
+        throw lastError;
+    }
+
+    // 2. Groq (Fastest)
+    async function fetchGroq(text) {
+        const url = "https://api.groq.com/openai/v1/chat/completions";
+        const model = CURRENT_CONFIG.model.replace("groq/", ""); // Remove prefix
+
+        let msgs = [{role: "system", content: SYSTEM_PROMPT}];
+        history.forEach(h => msgs.push({role: h.role, content: h.text}));
+        msgs.push({role: "user", content: text});
+
+        const res = await fetch(url, {
+            method: "POST",
+            headers: {
+                "Authorization": `Bearer ${CURRENT_CONFIG.key}`,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                model: model,
+                messages: msgs,
+                max_tokens: 100
+            })
+        });
+
+        if(!res.ok) throw new Error("Groq Error: " + res.status);
+        const data = await res.json();
+        return data.choices[0].message.content;
+    }
+
+    // 3. Hugging Face (With Cold Start Wait)
+    async function fetchHuggingFace(text) {
+        const url = `https://api-inference.huggingface.co/models/${CURRENT_CONFIG.model}`;
+        
+        let fullPrompt = `System: ${SYSTEM_PROMPT}\n`;
+        history.forEach(h => fullPrompt += `${h.role === 'user' ? 'User' : 'Karishma'}: ${h.text}\n`);
+        fullPrompt += `User: ${text}\nKarishma:`;
+
+        const res = await fetch(url, {
+            method: "POST", 
+            headers: {
+                "Authorization": `Bearer ${CURRENT_CONFIG.key}`,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ 
+                inputs: fullPrompt,
+                parameters: { max_new_tokens: 100, return_full_text: false },
+                options: { wait_for_model: true } // Auto wait if model is asleep
+            })
+        });
+
+        if(!res.ok) throw new Error("HF API Error: " + res.status);
+        const data = await res.json();
+        
+        if(Array.isArray(data)) return data[0].generated_text || "No text";
+        if(data.generated_text) return data.generated_text;
+        return JSON.stringify(data);
     }
 </script>
 
