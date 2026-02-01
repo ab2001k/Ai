@@ -49,7 +49,7 @@
     #sun { background: radial-gradient(circle, #fff, #ffd700); box-shadow: 0 0 60px 20px rgba(255, 215, 0, 0.6); }
     #moon { background: radial-gradient(#fff, #ccc); box-shadow: 0 0 30px #fff; }
 
-    /* Updated Mountains to be interactive */
+    /* INTERACTIVE MOUNTAINS */
     .mountains { position: absolute; bottom: 25%; width: 100%; z-index: 2; cursor: pointer; pointer-events: auto; }
     .mtn { position: absolute; bottom: 0; width: 0; height: 0; border-left: 120px solid transparent; border-right: 120px solid transparent; border-bottom: 200px solid #2c3e50; } 
     .m1 { left: -50px; bottom: -20px; border-bottom-color: #3f51b5; z-index: 2; }
@@ -130,7 +130,8 @@
     
     .key-in { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; }
     .btn-main { background: var(--accent); color: white; padding: 10px 20px; border: none; border-radius: 20px; width: 100%; font-weight: bold; margin-top: 10px; cursor: pointer; }
-    
+    .btn-reset { background: #555; color: white; padding: 8px 15px; border: none; border-radius: 15px; font-size: 12px; margin-top: 15px; cursor: pointer; }
+
     select { width: 100%; padding: 10px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #ccc; background: #fff; font-size: 14px; }
     label { display: block; text-align: left; font-size: 12px; font-weight: bold; color: #555; margin-top: 10px; }
     
@@ -154,8 +155,7 @@
             </optgroup>
             <optgroup label="Google Gemini (Requires API Key)">
                 <option value="gemini-1.5-flash">Gemini 1.5 Flash (Recommended)</option>
-                <option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
-                <option value="gemini-2.0-flash-exp">Gemini 2.0 Flash (Exp)</option>
+                <option value="gemini-1.5-flash-8b">Gemini 1.5 Flash 8B</option>
             </optgroup>
             <optgroup label="Hugging Face (Requires HF Token)">
                 <option value="mistralai/Mistral-7B-Instruct-v0.3">Mistral 7B v0.3</option>
@@ -170,7 +170,10 @@
         <p class="helper-text" id="keyHelper">Get Google Key: <a href="https://aistudio.google.com/app/apikey" target="_blank">Google AI Studio</a></p>
         
         <button class="btn-main" onclick="saveSettings()">Connect & Save</button>
-        <button class="settings-btn" style="margin-top:10px; font-size:12px;" onclick="document.getElementById('key-modal').style.display='none'">Cancel (if already set)</button>
+        <button class="settings-btn" style="margin-top:10px; font-size:12px;" onclick="document.getElementById('key-modal').style.display='none'">Cancel</button>
+        
+        <br>
+        <button class="btn-reset" onclick="resetKeys()">⚠️ Reset All Keys</button>
     </div>
 </div>
 
@@ -259,6 +262,16 @@
         updateKeyPlaceholder(); 
     }
 
+    function resetKeys() {
+        if(confirm("Delete all saved API keys?")) {
+            localStorage.removeItem("karishma_key_google");
+            localStorage.removeItem("karishma_key_groq");
+            localStorage.removeItem("karishma_key_hf");
+            alert("Keys deleted! Please reload.");
+            location.reload();
+        }
+    }
+
     function updateKeyPlaceholder() {
         const sel = document.getElementById("modelSelector");
         const val = sel.value;
@@ -267,37 +280,29 @@
         const helper = document.getElementById("keyHelper");
 
         let storageKey = "";
-        let providerName = "";
-
+        
         if (val.startsWith("gemini")) {
             label.innerText = "Google API Key (AIza...):";
             keyIn.placeholder = "AIza...";
             helper.innerHTML = 'Get Key: <a href="https://aistudio.google.com/app/apikey" target="_blank">Google AI Studio</a>';
             storageKey = "karishma_key_google";
-            providerName = "google";
         } else if (val.startsWith("groq")) {
             label.innerText = "Groq API Key (gsk_...):";
             keyIn.placeholder = "gsk_...";
             helper.innerHTML = 'Get Key: <a href="https://console.groq.com/keys" target="_blank">Groq Cloud (Free Beta)</a>';
             storageKey = "karishma_key_groq";
-            providerName = "groq";
         } else {
             label.innerText = "Hugging Face Token (hf_...):";
             keyIn.placeholder = "hf_...";
             helper.innerHTML = 'Get Token: <a href="https://huggingface.co/settings/tokens" target="_blank">Hugging Face Settings</a>';
             storageKey = "karishma_key_hf";
-            providerName = "huggingface";
         }
 
-        // --- FIX: Auto-Load Key immediately on switching dropdown ---
         const savedKey = localStorage.getItem(storageKey);
         if (savedKey) {
             keyIn.value = savedKey;
-            CURRENT_CONFIG.key = savedKey; // Update memory immediately so it works without clicking save
-            CURRENT_CONFIG.provider = providerName;
         } else {
             keyIn.value = "";
-            CURRENT_CONFIG.key = ""; // Clear key if none saved
         }
     }
 
@@ -308,6 +313,12 @@
         const key = keyIn.value.trim();
 
         if (!key) { alert("Please enter a key!"); return; }
+
+        // --- VALIDATION FOR GROQ KEY ---
+        if (val.startsWith("groq") && !key.startsWith("gsk_")) {
+            alert("❌ Invalid Groq Key! It must start with 'gsk_'. Please check again.");
+            return;
+        }
 
         CURRENT_CONFIG.model = val;
         CURRENT_CONFIG.key = key;
@@ -441,7 +452,7 @@
     async function callAI(text, hidden, fallback) {
         if(!CURRENT_CONFIG.key) {
             if(!hidden) addBot("⚠️ Setup Key first! (Click Gear ⚙️)");
-            else if(fallback) addBot(fallback); // Use fallback if no key
+            else if(fallback) addBot(fallback); 
             return;
         }
 
@@ -510,7 +521,7 @@
         // FIXED: 404 handling. If Pro fails, fallback to Flash immediately
         if (res.status === 404 || res.status === 503) {
              if (!retryModel) {
-                 addBot("⚠️ Model not found, switching to Flash...");
+                 // Silent Switch to Flash
                  return await fetchGeminiSafe(text, "gemini-1.5-flash"); 
              }
              throw new Error("Gemini API Error: " + res.status);
@@ -525,7 +536,7 @@
         return data.candidates[0].content.parts[0].text;
     }
 
-    // 2. GROQ FIXED (Strict role names & models)
+    // 2. GROQ FIXED (Strict role names & models & Key validation)
     async function fetchGroq(text) {
         const url = "https://api.groq.com/openai/v1/chat/completions";
         const model = CURRENT_CONFIG.model.replace("groq/", "");
