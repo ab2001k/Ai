@@ -394,21 +394,19 @@
         if (!window.speechSynthesis) return;
         window.speechSynthesis.cancel();
         
-        // --- NEW: ROBUST EMOJI REMOVER & CLEANER ---
+        // --- EMOJI & SYMBOL CLEANER (No more robot reading emojis) ---
         const cleanText = text
-            .replace(/([\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF])/g, '') // Remove Emojis
-            .replace(/\*/g, '') // Remove asterisks
+            .replace(/([\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF])/g, '') 
+            .replace(/\*/g, '')
             .trim();
 
-        if (!cleanText) return; // Don't speak empty strings
+        if (!cleanText) return; 
 
         const utterance = new SpeechSynthesisUtterance(cleanText);
         utterance.pitch = 1.1; 
         utterance.rate = 1.0; 
         
-        // --- NEW: BETTER VOICE SELECTION (Prioritize Google/Natural) ---
         const voices = window.speechSynthesis.getVoices();
-        // Try to find a Google voice first, they sound much better
         const preferredVoice = voices.find(v => v.name.includes('Google') && v.name.includes('Female')) ||
                                voices.find(v => v.name.includes('Google US English')) ||
                                voices.find(v => v.name.includes('Female')) ||
@@ -463,54 +461,54 @@
 
     // --- API HANDLERS ---
 
+    // 1. GEMINI FIXED (Strict alternating turns & System Instruction)
     async function fetchGeminiSafe(text, retryModel = null) {
         const modelToUse = retryModel || CURRENT_CONFIG.model;
-        const versions = ["v1beta", "v1"];
-        let lastError = null;
+        
+        // Use v1beta to support system_instruction
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelToUse}:generateContent?key=${CURRENT_CONFIG.key}`;
+        
+        // Correctly format history to strictly alternate: User -> Model -> User
+        let geminiHistory = history.map(h => ({
+            role: h.role === "user" ? "user" : "model",
+            parts: [{text: h.text}]
+        }));
 
-        for (const ver of versions) {
-            try {
-                const url = `https://generativelanguage.googleapis.com/${ver}/models/${modelToUse}:generateContent?key=${CURRENT_CONFIG.key}`;
-                
-                let geminiHistory = history.map(h => ({
-                    role: h.role === "user" ? "user" : "model",
-                    parts: [{text: h.text}]
-                }));
-                geminiHistory.push({role: "user", parts: [{text: text}]});
+        // Add the current message
+        geminiHistory.push({role: "user", parts: [{text: text}]});
 
-                const res = await fetch(url, {
-                    method: "POST", headers: {"Content-Type": "application/json"},
-                    body: JSON.stringify({ 
-                        contents: [{role: "user", parts: [{text: SYSTEM_PROMPT}]}, ...geminiHistory]
-                    })
-                });
-
-                if (res.status === 404 || res.status === 503) throw new Error("API_FAIL_" + res.status);
-                if (!res.ok) throw new Error("Gemini Error: " + res.status);
-
-                const data = await res.json();
-                return data.candidates[0].content.parts[0].text;
-
-            } catch(e) {
-                lastError = e;
-                if(!e.message.includes("API_FAIL")) break; 
+        const payload = {
+            contents: geminiHistory,
+            // Move SYSTEM_PROMPT here so it's not counted as a 'User' message
+            system_instruction: {
+                parts: [{ text: SYSTEM_PROMPT }]
             }
+        };
+
+        const res = await fetch(url, {
+            method: "POST", headers: {"Content-Type": "application/json"},
+            body: JSON.stringify(payload)
+        });
+
+        if (res.status === 404 || res.status === 503) {
+             if (!retryModel) return await fetchGeminiSafe(text, "gemini-1.5-flash"); // Fallback
+             throw new Error("Gemini API Error: " + res.status);
+        }
+        
+        if (!res.ok) {
+             const err = await res.text();
+             throw new Error("Gemini Error: " + res.status + " " + err);
         }
 
-        if (!retryModel && (lastError.message.includes("404") || lastError.message.includes("503"))) {
-            addBot("⚠️ Auto-Switching to Backup Model...");
-            return await fetchGeminiSafe(text, "gemini-1.5-flash"); 
-        }
-
-        throw lastError;
+        const data = await res.json();
+        return data.candidates[0].content.parts[0].text;
     }
 
-    // --- FIXED GROQ FUNCTION (YOUR REQUEST) ---
+    // 2. GROQ FIXED (Strict role names & models)
     async function fetchGroq(text) {
         const url = "https://api.groq.com/openai/v1/chat/completions";
         const model = CURRENT_CONFIG.model.replace("groq/", "");
 
-        // Valid Models List (Matches Dropdown)
         const allowedModels = [
             "llama-3.3-70b-versatile",
             "llama-3.1-8b-instant",
@@ -522,10 +520,8 @@
         }
 
         const GROQ_SYSTEM = "You are Karishma AI. Cute, helpful robot girl. Short replies.";
-
         let msgs = [{ role: "system", content: GROQ_SYSTEM }];
 
-        // CORRECT MAPPING: model -> assistant
         history.forEach(h => {
             msgs.push({
                 role: h.role === "model" ? "assistant" : "user",
@@ -557,6 +553,7 @@
         return data.choices[0].message.content;
     }
 
+    // 3. HUGGING FACE
     async function fetchHuggingFace(text) {
         const url = `https://api-inference.huggingface.co/models/${CURRENT_CONFIG.model}`;
         
