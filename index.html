@@ -393,12 +393,29 @@
     function speak(text) {
         if (!window.speechSynthesis) return;
         window.speechSynthesis.cancel();
-        const cleanText = text.replace(/[\u{1F600}-\u{1F6FF}]/gu, ''); 
+        
+        // --- NEW: ROBUST EMOJI REMOVER & CLEANER ---
+        const cleanText = text
+            .replace(/([\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF])/g, '') // Remove Emojis
+            .replace(/\*/g, '') // Remove asterisks
+            .trim();
+
+        if (!cleanText) return; // Don't speak empty strings
+
         const utterance = new SpeechSynthesisUtterance(cleanText);
-        utterance.pitch = 1.3; utterance.rate = 1.1; 
+        utterance.pitch = 1.1; 
+        utterance.rate = 1.0; 
+        
+        // --- NEW: BETTER VOICE SELECTION (Prioritize Google/Natural) ---
         const voices = window.speechSynthesis.getVoices();
-        const femaleVoice = voices.find(v => v.name.includes('Female') || v.name.includes('Google US English'));
-        if(femaleVoice) utterance.voice = femaleVoice;
+        // Try to find a Google voice first, they sound much better
+        const preferredVoice = voices.find(v => v.name.includes('Google') && v.name.includes('Female')) ||
+                               voices.find(v => v.name.includes('Google US English')) ||
+                               voices.find(v => v.name.includes('Female')) ||
+                               voices[0];
+                               
+        if(preferredVoice) utterance.voice = preferredVoice;
+        
         window.speechSynthesis.speak(utterance);
     }
 
@@ -428,7 +445,6 @@
             else if(!text.includes("User")) addBot(reply);
 
             if(!hidden) {
-                // Store using INTERNAL role names, providers will translate later
                 history.push({role: "user", text: text});
                 history.push({role: "model", text: reply});
                 if(history.length > 10) history = history.slice(-10);
@@ -440,19 +456,15 @@
             if(fallback) addBot(fallback);
             else addBot(`⚠️ Error: ${e.message}`);
             
-            // Clean history on error to prevent loops
             history.pop(); 
             status.innerText = "Error";
         }
     }
 
-    // --- API HANDLERS WITH FALLBACKS ---
+    // --- API HANDLERS ---
 
-    // 1. Google Gemini (With Auto-Repair)
     async function fetchGeminiSafe(text, retryModel = null) {
         const modelToUse = retryModel || CURRENT_CONFIG.model;
-        
-        // Try v1beta first, then v1
         const versions = ["v1beta", "v1"];
         let lastError = null;
 
@@ -493,22 +505,35 @@
         throw lastError;
     }
 
-    // 2. Groq (Fastest - FIXED 400 ERROR)
+    // --- FIXED GROQ FUNCTION (YOUR REQUEST) ---
     async function fetchGroq(text) {
         const url = "https://api.groq.com/openai/v1/chat/completions";
-        const model = CURRENT_CONFIG.model.replace("groq/", ""); 
+        const model = CURRENT_CONFIG.model.replace("groq/", "");
 
-        let msgs = [{role: "system", content: SYSTEM_PROMPT}];
+        // Valid Models List (Matches Dropdown)
+        const allowedModels = [
+            "llama-3.3-70b-versatile",
+            "llama-3.1-8b-instant",
+            "gemma2-9b-it"
+        ];
         
-        // FIXED: Translates 'model' (Google style) to 'assistant' (OpenAI/Groq style)
+        if (!allowedModels.includes(model)) {
+            throw new Error("Invalid Groq model name selected.");
+        }
+
+        const GROQ_SYSTEM = "You are Karishma AI. Cute, helpful robot girl. Short replies.";
+
+        let msgs = [{ role: "system", content: GROQ_SYSTEM }];
+
+        // CORRECT MAPPING: model -> assistant
         history.forEach(h => {
             msgs.push({
-                role: h.role === "user" ? "user" : "assistant",
+                role: h.role === "model" ? "assistant" : "user",
                 content: h.text
             });
         });
 
-        msgs.push({role: "user", content: text});
+        msgs.push({ role: "user", content: text });
 
         const res = await fetch(url, {
             method: "POST",
@@ -523,15 +548,15 @@
             })
         });
 
-        if(!res.ok) {
-            const errData = await res.json();
-            throw new Error(`Groq Error: ${res.status} - ${errData.error?.message || 'Unknown'}`);
+        if (!res.ok) {
+            const err = await res.text();
+            throw new Error("Groq Error " + res.status + ": " + err);
         }
+
         const data = await res.json();
         return data.choices[0].message.content;
     }
 
-    // 3. Hugging Face (With Cold Start Wait)
     async function fetchHuggingFace(text) {
         const url = `https://api-inference.huggingface.co/models/${CURRENT_CONFIG.model}`;
         
